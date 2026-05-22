@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>外国語日記共有アプリ - Dnevnikki</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        forest: {
+                            light: '#FAF6F0',  // ほっこりミルクベージュ (ベース)
+                            soft: '#EBE4D8',   // 少し濃いサンドベージュ
+                            green: '#76A076',  // 優しいセージグリーン (メイン)
+                            greenDark: '#4D6B4D', // 濃い森の緑
+                            clay: '#D48A6A',   // ぬくもりのあるクッキーテラコッタ (アクセント)
+                            brown: '#5C4033',  // チョコレートブラウン (文字・フチ)
+                            sky: '#D6EAF8'     // 澄んだパステルブルー
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Zen+Maru+Gothic:wght@400;500;700&display=swap');
+        
+        body {
+            font-family: 'Fredoka', 'Zen Maru Gothic', sans-serif;
+            background-color: #FAF6F0;
+        }
+
+        /* ぷにぷに3Dトイデザインのユーティリティ */
+        .toy-card {
+            border: 3px solid #5C4033;
+            border-radius: 24px;
+            background-color: #FFFFFF;
+            box-shadow: 4px 4px 0px 0px #5C4033;
+            transition: all 0.15s ease-in-out;
+        }
+
+        .toy-btn-active {
+            border: 3px solid #5C4033;
+            border-radius: 16px;
+            background-color: #76A076;
+            color: #FFFFFF;
+            box-shadow: 2px 2px 0px 0px #5C4033;
+            transform: translate(2px, 2px);
+        }
+
+        .toy-btn-interactive {
+            border: 3px solid #5C4033;
+            border-radius: 16px;
+            background-color: #FFFFFF;
+            color: #5C4033;
+            box-shadow: 4px 4px 0px 0px #5C4033;
+            transition: all 0.1s ease-in-out;
+        }
+        .toy-btn-interactive:hover {
+            background-color: #FAF6F0;
+        }
+        .toy-btn-interactive:active {
+            box-shadow: 0px 0px 0px 0px #5C4033;
+            transform: translate(4px, 4px);
+        }
+
+        .toy-btn-submit {
+            border: 3px solid #5C4033;
+            border-radius: 20px;
+            background-color: #D48A6A;
+            color: #FFFFFF;
+            box-shadow: 4px 4px 0px 0px #5C4033;
+            transition: all 0.1s ease-in-out;
+        }
+        .toy-btn-submit:hover {
+            background-color: #C57B5B;
+        }
+        .toy-btn-submit:active {
+            box-shadow: 0px 0px 0px 0px #5C4033;
+            transform: translate(4px, 4px);
+        }
+
+        /* 手書きノート風下線 */
+        .ruled-paper {
+            background-image: linear-gradient(#f0ebe1 1px, transparent 1px);
+            background-size: 100% 2rem;
+            line-height: 2rem;
+        }
+    </style>
+</head>
+<body class="text-forest-brown min-h-screen flex flex-col">
+
+    <!-- Firebase SDK (Compat Version) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <!-- App Header -->
+    <header class="bg-white border-b-4 border-forest-brown sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+                <!-- Note + Pencil Icon Container -->
+                <div class="bg-forest-green text-white p-2.5 rounded-2xl border-2 border-forest-brown shadow-[2px_2px_0px_0px_#5C4033] flex items-center space-x-1 shrink-0">
+                    <i class="fa-solid fa-book text-lg"></i>
+                    <i class="fa-solid fa-pencil text-sm"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight text-forest-brown flex items-center gap-1.5">
+                        Dnevnikki
+                        <span class="text-xs bg-[#FAF1CC] text-[#B08D22] border-2 border-[#B08D22] px-2 py-0.5 rounded-full font-bold">
+                            ぬいつぎ
+                        </span>
+                    </h1>
+                    <p class="text-xs text-forest-brown/60 font-semibold" id="class-indicator">クラス: ロード中...</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                <!-- Admin Toggle Button (管理モード) -->
+                <button id="admin-mode-btn" class="text-xs font-bold px-3 py-2.5 rounded-xl border-2 border-forest-brown bg-forest-soft hover:bg-forest-soft/80 text-forest-brown transition-all duration-100 shadow-[2px_2px_0px_0px_#5C4033] active:translate-y-0.5 active:shadow-[1px_1px_0px_0px_#5C4033] flex items-center space-x-1">
+                    <i class="fa-solid fa-user-gear"></i>
+                    <span>管理モード</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-grow max-w-4xl w-full mx-auto p-4 space-y-6">
+        
+        <!-- Database State Alert -->
+        <div id="db-state-badge" class="hidden mb-4 p-4 rounded-2xl border-3 border-forest-brown bg-[#FFF3CD] text-[#856404] text-xs font-bold flex items-center space-x-2 shadow-[2px_2px_0px_0px_#5C4033]">
+            <i class="fa-solid fa-circle-nodes animate-pulse text-base text-amber-600"></i>
+            <span><strong>ローカルデモモードで動作中:</strong> データベース未接続。登録データや日記はブラウザにのみ保存されます。</span>
+        </div>
+
+        <!-- Alerts & Notifications -->
+        <div id="toast-container" class="hidden p-4 rounded-2xl text-sm font-bold border-3 border-forest-brown flex items-center justify-between shadow-[4px_4px_0px_0px_#5C4033] transition-all duration-300">
+            <span id="toast-message"></span>
+            <button onclick="hideToast()" class="text-lg font-black">&times;</button>
+        </div>
+
+        <!-- 1. USER SELECT BAR (CRITICAL PRIVACY GATEWAY) -->
+        <div class="toy-card p-5 space-y-3.5 bg-white">
+            <div>
+                <label class="block text-xs font-bold text-forest-brown uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                    <span>現在の選択ユーザー</span>
+                </label>
+                <div class="relative">
+                    <select id="user-select" class="w-full bg-forest-light border-3 border-forest-brown rounded-2xl px-4 py-3 text-base font-bold text-forest-brown focus:outline-none focus:ring-4 focus:ring-forest-green/20 focus:bg-white transition appearance-none">
+                        <option value="" disabled selected>名前を選択してください</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-forest-brown">
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Passcode Modal/Verification Form -->
+            <div id="passcode-verification-box" class="hidden border-t-3 border-dashed border-forest-brown/30 pt-4 mt-2 space-y-3">
+                <div class="bg-forest-light border-3 border-forest-brown rounded-2xl p-4 flex items-start space-x-3 shadow-[2px_2px_0px_0px_#5C4033]">
+                    <span class="text-xl text-forest-green mt-0.5"><i class="fa-solid fa-key"></i></span>
+                    <div class="text-xs font-bold leading-relaxed">
+                        <p class="text-forest-green text-sm font-black">プライバシーロックが有効です</p>
+                        <p class="mt-1 text-forest-brown/80">このユーザーの日記にアクセスするには、登録された4桁のパスコードを入力してください。一度ログインすると、同じブラウザを使用している間はスキップされます。</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="relative flex-grow">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-forest-brown/70">
+                            <i class="fa-solid fa-lock"></i>
+                        </span>
+                        <input type="password" id="user-passcode-input" maxlength="4" placeholder="4桁のパスコードを入力" class="w-full bg-forest-light border-3 border-forest-brown rounded-2xl pl-10 pr-4 py-3 text-base font-bold text-forest-brown placeholder-forest-brown/40 focus:outline-none focus:ring-4 focus:ring-forest-green/20 focus:bg-white transition tracking-widest text-center">
+                    </div>
+                    <button id="verify-passcode-btn" class="toy-btn-submit font-bold text-sm px-6 py-3.5 shrink-0">
+                        認証する
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. USER MODE VIEW -->
+        <div id="user-view" class="space-y-6">
+            <!-- Normal User Navigation -->
+            <div class="grid grid-cols-2 gap-3 p-1.5 bg-forest-soft/50 border-3 border-forest-brown rounded-2xl">
+                <button id="tab-write" class="py-3 text-base font-bold rounded-xl bg-forest-green text-white border-2 border-forest-brown shadow-[2px_2px_0px_0px_#5C4033] transition-all flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-pen-fancy"></i>
+                    <span>日記を書く</span>
+                </button>
+                <button id="tab-read" class="py-3 text-base font-bold rounded-xl text-forest-brown hover:text-forest-brown/80 hover:bg-white/40 transition-all flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-calendar-day"></i>
+                    <span>日記を読む</span>
+                </button>
+            </div>
+
+            <!-- BLOCKER FOR UNVERIFIED USERS -->
+            <div id="unverified-blocker" class="toy-card p-8 text-center text-forest-brown/60 bg-white space-y-4">
+                <div class="w-20 h-20 bg-forest-light border-3 border-forest-brown rounded-full flex items-center justify-center mx-auto text-3xl shadow-[2px_2px_0px_0px_#5C4033]">
+                    <i class="fa-solid fa-user-shield text-forest-brown"></i>
+                </div>
+                <h3 class="font-extrabold text-forest-brown text-xl">セキュリティ・認証が必要です</h3>
+                <p class="text-xs font-bold text-forest-brown/70 max-w-sm mx-auto leading-relaxed">
+                    日記の記入および閲覧を開始するには、上部のプルダウンからご自身の名前を選択し、4桁のパスコードで認証を行ってください。
+                </p>
+            </div>
+
+            <!-- SUB-VIEW: WRITE DIARY (Verified Only) -->
+            <section id="write-section" class="hidden toy-card p-5 md:p-6 bg-white space-y-6 relative overflow-hidden">
+                <!-- Cute leaf decoration -->
+                <div class="absolute -top-3 -right-3 text-forest-green text-4xl opacity-30 pointer-events-none transform rotate-12">
+                    <i class="fa-solid fa-seedling"></i>
+                </div>
+
+                <div class="border-b-3 border-dashed border-forest-brown/20 pb-4">
+                    <h2 class="text-xl font-extrabold text-forest-brown flex items-center gap-1.5">今日の日記をシェアしよう</h2>
+                    <p class="text-xs font-semibold text-forest-brown/60 mt-1">学習言語で書いて、みんなと学びを共有しましょう。</p>
+                </div>
+
+                <form id="diary-form" class="space-y-5">
+                    <!-- Date Selection -->
+                    <div>
+                        <label class="block text-xs font-bold text-forest-brown uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                            <span>📅 日記の日付</span>
+                        </label>
+                        <input type="date" id="diary-date" required class="w-full bg-forest-light border-3 border-forest-brown rounded-2xl px-4 py-3 text-base font-bold text-forest-brown focus:outline-none focus:ring-4 focus:ring-forest-green/20 focus:bg-white transition">
+                    </div>
+
+                    <!-- Submission Type Selection -->
+                    <div>
+                        <label class="block text-xs font-bold text-forest-brown uppercase tracking-wider mb-1.5">🎒 提出方法</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="border-3 border-forest-green bg-[#EDF7ED] rounded-2xl p-3 flex items-center justify-center space-x-2 cursor-pointer transition-all hover:bg-forest-light" id="type-text-label">
+                                <input type="radio" name="submission-type" value="text" checked class="text-forest-green focus:ring-forest-green">
+                                <span class="text-sm font-black text-forest-brown">キーボード入力</span>
+                            </label>
+                            <label class="border-3 border-forest-soft rounded-2xl p-3 flex items-center justify-center space-x-2 cursor-pointer transition-all hover:bg-forest-light" id="type-image-label">
+                                <input type="radio" name="submission-type" value="image" class="text-forest-green focus:ring-forest-green">
+                                <span class="text-sm font-black text-forest-brown">画像をアップロード</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Input Fields based on Type -->
+                    <div id="input-text-container" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-forest-brown uppercase tracking-wider mb-1.5">✏️ 日記本文 (外国語)</label>
+                            <textarea id="diary-content" rows="6" placeholder="Write your diary here in target language..." class="w-full bg-forest-light border-3 border-forest-brown rounded-2xl px-4 py-3 text-base font-bold text-forest-brown placeholder-forest-brown/30 focus:outline-none focus:ring-4 focus:ring-forest-green/20 focus:bg-white transition ruled-paper"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-forest-brown uppercase tracking-wider mb-1.5">💡 日本語訳・メモ (任意)</label>
+                            <textarea id="diary-translation" rows="3" placeholder="日本語訳や、難しかった表現などのメモ..." class="w-full bg-forest-light border-3 border-forest-brown rounded-2xl px-4 py-3 text-base font-bold text-forest-brown placeholder-forest-brown/30 focus:outline-none focus:ring-4 focus:ring-forest-green/20 focus:bg-white transition"></textarea>
+                        </div>
+                    </div>
+
+                    <div id="input-image-container" class="hidden space-y-4">
+                        <div class="border-3 border-dashed border-forest-soft rounded-3xl p-6 text-center hover:border-forest-green transition-all bg-forest-light cursor-pointer relative" id="drop-zone">
+                            <input type="file" id="diary-image-file" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                            <div class="space-y-2">
+                                <i class="fa-solid fa-cloud-arrow-up text-4xl text-forest-green animate-pulse"></i>
+                                <p class="text-sm font-black text-forest-brown">クリック、またはここにノートの写真をドロップ</p>
+                                <p class="text-xs text-forest-brown/60">PNG, JPG, GIF (最大 5MB)</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Image Preview Box -->
+                        <div id="image-preview-box" class="hidden border-3 border-forest-brown rounded-2xl p-3 bg-forest-light flex items-center justify-between shadow-[2px_2px_0px_0px_#5C4033]">
+                            <div class="flex items-center space-x-3">
+                                <img id="preview-img-tag" src="" alt="Preview" class="w-16 h-16 object-cover rounded-xl border-2 border-forest-brown">
+                                <div>
+                                    <p class="text-xs font-black text-forest-brown">アップロード準備完了</p>
+                                    <p class="text-[10px] text-forest-brown/60" id="preview-img-name">image.png</p>
+                                </div>
+                            </div>
+                            <button type="button" id="remove-img-btn" class="text-rose-500 hover:text-rose-700 text-sm font-bold bg-white border-2 border-forest-brown px-3 py-1 rounded-xl shadow-[1px_1px_0px_0px_#5C4033] active:translate-y-0.5 active:shadow-none">削除</button>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-forest-brown uppercase tracking-wider mb-1.5">🤖 写真のテキスト(OCR化 / 補足コメント)</label>
+                            <textarea id="diary-image-caption" rows="3" placeholder="AIによる画像読み取り結果、または補足説明が入ります。" class="w-full bg-forest-light border-3 border-forest-brown rounded-2xl px-4 py-3 text-base font-bold text-forest-brown placeholder-forest-brown/30 focus:outline-none focus:ring-4 focus:ring-forest-green/20 focus:bg-white transition"></textarea>
+                            <p class="text-[11px] text-forest-green font-bold mt-1.5"><i class="fa-solid fa-wand-magic-sparkles"></i> 写真をアップロードすると、自動的に画像内のテキストを読み取る体験デモが作動します！</p>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" id="submit-diary-btn" class="w-full toy-btn-submit font-extrabold py-4 px-6 text-base transition-all duration-100 flex items-center justify-center space-x-2">
+                        <i class="fa-regular fa-paper-plane text-lg"></i>
+                        <span>日記を提出する</span>
+                    </button>
+                </form>
+            </section>
+
+            <!-- SUB-VIEW: READ DIARIES (Verified Only) -->
+            <section id="read-section" class="hidden space-y-4">
+                
+                <!-- Read Scope Sub-Tabs -->
+                <div class="flex border-b-3 border-forest-brown space-x-4 mb-4">
+                    <button id="read-subtab-yesterday" class="py-2 px-1 text-base font-extrabold border-b-4 border-forest-green text-forest-green transition flex items-center space-x-1.5">
+                        <i class="fa-solid fa-users"></i>
+                        <span>昨日のみんなの日記</span>
+                    </button>
+                    <button id="read-subtab-myall" class="py-2 px-1 text-base font-bold border-b-4 border-transparent text-forest-brown/50 hover:text-forest-brown transition flex items-center space-x-1.5">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        <span>自分の過去日記 (すべて)</span>
+                    </button>
+                </div>
+
+                <!-- Info Header and Refresh -->
+                <div class="bg-forest-light border-3 border-forest-brown rounded-2xl p-4 flex items-center justify-between gap-4 shadow-[2px_2px_0px_0px_#5C4033]">
+                    <div>
+                        <h2 class="text-sm font-black text-forest-brown" id="read-scope-title">昨日のみんなの日記を表示中</h2>
+                        <p class="text-xs text-forest-brown/60 font-bold mt-0.5" id="read-scope-subtitle">対象日: YYYY-MM-DD</p>
+                    </div>
+                    <div>
+                        <button id="refresh-diaries" class="toy-btn-interactive font-bold px-3 py-2 text-xs flex items-center space-x-1.5">
+                            <i class="fa-solid fa-arrows-rotate"></i>
+                            <span>再読み込み</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Diary Cards List -->
+                <div id="diaries-list-container" class="space-y-4">
+                    <!-- Loading skeleton -->
+                    <div class="toy-card p-6 text-center text-forest-brown/60 bg-white">
+                        <i class="fa-solid fa-spinner animate-spin text-2xl text-forest-green mb-2"></i>
+                        <p class="text-sm font-bold">日記を読み込んでいます...</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+
+        <!-- 3. ADMIN MODE VIEW -->
+        <div id="admin-view" class="hidden space-y-6">
+            <div class="flex items-center justify-between border-b-3 border-forest-brown pb-4">
+                <div>
+                    <h2 class="text-xl font-extrabold text-forest-brown">管理者ダッシュボード</h2>
+                    <p class="text-xs font-semibold text-forest-brown/60">ユーザー設定、および投稿された日記の管理・検閲ができます。</p>
+                </div>
+                <button id="exit-admin-btn" class="toy-btn-interactive text-xs font-bold px-3 py-2 flex items-center space-x-1">
+                    <i class="fa-solid fa-circle-xmark"></i> <span>閉じる</span>
+                </button>
+            </div>
+
+            <!-- Admin Area Tabs -->
+            <div class="flex border-b-3 border-forest-brown space-x-4">
+                <button id="admin-tab-users" class="py-2 px-1 text-sm font-black border-b-4 border-forest-green text-forest-green transition">
+                    ユーザー(名簿)管理
+                </button>
+                <button id="admin-tab-moderation" class="py-2 px-1 text-sm font-bold border-b-4 border-transparent text-forest-brown/50 hover:text-forest-brown transition">
+                    投稿検閲 (削除/非表示)
+                </button>
+            </div>
+
+            <!-- ADMIN SUB-VIEW: USER MANAGEMENT -->
+            <section id="admin-users-section" class="space-y-6">
+                <!-- Change Admin Password Section -->
+                <div class="bg-[#FFF9E6] border-3 border-forest-brown rounded-2xl p-5 shadow-[4px_4px_0px_0px_#5C4033] space-y-3">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-key text-forest-clay text-lg"></i>
+                        <h4 class="font-black text-forest-brown text-sm">管理者ログインパスワードの設定</h4>
+                    </div>
+                    <p class="text-xs font-bold text-forest-brown/80 leading-relaxed">
+                        一般の生徒が管理者画面に入り込むのを防ぐため、独自の管理者用パスワードを設定・更新してください。
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-2 max-w-lg">
+                        <input type="password" id="admin-new-password-input" placeholder="新しい管理者パスワードを入力" class="flex-grow bg-white border-3 border-forest-brown rounded-2xl px-4 py-2 text-sm font-bold text-forest-brown focus:outline-none focus:ring-4 focus:ring-forest-green/20">
+                        <button id="save-admin-password-btn" class="toy-btn-submit font-bold text-xs px-4 py-3">
+                            パスワード変更
+                        </button>
+                    </div>
+                </div>
+
+                <div class="toy-card p-5 md:p-6 bg-white space-y-4">
+                    <div>
+                        <h3 class="font-extrabold text-forest-brown">ユーザー登録</h3>
+                        <p class="text-xs font-semibold text-forest-brown/60 mt-0.5">「名前, パスコード」の形式で改行区切りで直接入力してください。</p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-forest-brown uppercase tracking-wider">ユーザー名とパスコード一覧 (1行に「名前, パスコード」)</label>
+                        <textarea id="admin-user-bulk" rows="6" placeholder="山田 太郎, 1234&#10;佐藤 花子, 5678" class="w-full bg-forest-light border-3 border-forest-brown rounded-2xl px-4 py-3 text-base font-bold text-forest-brown placeholder-forest-brown/30 focus:outline-none focus:ring-4 focus:ring-forest-green/20"></textarea>
+                    </div>
+
+                    <div class="flex space-x-3">
+                        <button id="save-users-btn" class="flex-1 toy-btn-submit font-extrabold py-3 px-6 flex items-center justify-center space-x-2">
+                            <i class="fa-regular fa-floppy-disk"></i>
+                            <span>ユーザー名簿を保存・更新</span>
+                        </button>
+                        <button id="clear-users-btn" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border-3 border-forest-brown font-extrabold px-4 rounded-2xl text-xs shadow-[2px_2px_0px_0px_#5C4033] active:translate-y-0.5 active:shadow-none transition-all">
+                            クリア
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Current Class Stats -->
+                <div class="toy-card p-5 md:p-6 bg-white space-y-4">
+                    <h3 class="font-extrabold text-forest-brown">現在の登録ユーザー・暗証番号一覧</h3>
+                    <div id="admin-user-chips-container" class="flex flex-wrap gap-2">
+                        <span class="text-forest-brown/60 text-sm italic">登録されているユーザーがいません。</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ADMIN SUB-VIEW: DIARY MODERATION -->
+            <section id="admin-moderation-section" class="hidden space-y-4">
+                <div class="bg-amber-50 border-3 border-forest-brown rounded-2xl p-4 flex items-start space-x-3 text-amber-900 shadow-[2px_2px_0px_0px_#5C4033]">
+                    <i class="fa-solid fa-triangle-exclamation text-lg mt-0.5"></i>
+                    <div class="text-xs font-bold leading-relaxed">
+                        <p class="font-black text-sm text-forest-clay">管理者権限</p>
+                        <p class="mt-0.5">不適切な投稿がある場合、「非公開」に変更して一般ユーザーの閲覧制限をかける、または「永久削除」することが可能です。</p>
+                    </div>
+                </div>
+
+                <div id="admin-diaries-moderation-list" class="space-y-3">
+                    <p class="text-forest-brown/60 text-sm italic text-center py-8">データを探しています...</p>
+                </div>
+            </section>
+        </div>
+
+    </main>
+
+    <!-- CUSTOM DIALOGS / MODALS -->
+    <!-- 1. Admin Password Auth Modal -->
+    <div id="admin-auth-modal" class="hidden fixed inset-0 bg-[#5C4033]/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl border-3 border-forest-brown p-6 max-w-sm w-full shadow-[6px_6px_0px_0px_#5C4033] space-y-4">
+            <div class="flex items-center space-x-3">
+                <div class="bg-forest-soft text-forest-brown p-2.5 rounded-2xl border-2 border-forest-brown shadow-[2px_2px_0px_0px_#5C4033]">
+                    <i class="fa-solid fa-shield-halved text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="font-extrabold text-forest-brown text-base">管理者認証</h3>
+                    <p class="text-xs font-bold text-forest-brown/60">ダッシュボードに入るためのパスワードを入力してください。</p>
+                </div>
+            </div>
+            <div class="space-y-2">
+                <label class="block text-[11px] font-bold text-forest-brown/70" id="admin-pass-input-label">管理者パスワード (※初期設定時は自由な文字でログイン可)</label>
+                <input type="password" id="admin-secret-input" placeholder="パスワードを入力..." class="w-full bg-forest-light border-3 border-forest-brown rounded-2xl px-4 py-2.5 text-sm font-bold text-forest-brown placeholder-forest-brown/30 focus:outline-none focus:ring-4 focus:ring-forest-green/20">
+                <p id="admin-auth-error-msg" class="text-rose-500 text-xs font-bold hidden">※正しい管理者パスワードを入力してください。</p>
+            </div>
+            <div class="flex space-x-2 pt-2">
+                <button id="cancel-admin-auth-btn" class="flex-1 bg-forest-soft hover:bg-forest-soft/85 border-2 border-forest-brown font-bold py-2.5 px-4 rounded-xl text-sm text-forest-brown shadow-[2px_2px_0px_0px_#5C4033] active:translate-y-0.5 active:shadow-none">
+                    キャンセル
+                </button>
+                <button id="confirm-admin-auth-btn" class="flex-1 bg-forest-green hover:bg-forest-greenDark text-white font-bold py-2.5 px-4 rounded-xl text-sm border-2 border-forest-brown shadow-[2px_2px_0px_0px_#5C4033] active:translate-y-0.5 active:shadow-none">
+                    ログイン
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Delete Confirmation Modal -->
+    <div id="delete-confirm-modal" class="hidden fixed inset-0 bg-[#5C4033]/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl border-3 border-forest-brown p-6 max-w-sm w-full shadow-[6px_6px_0px_0px_#5C4033] space-y-4">
+            <div class="flex items-center space-x-3">
+                <div class="bg-rose-100 text-rose-600 p-2.5 rounded-2xl border-2 border-forest-brown shadow-[2px_2px_0px_0px_#5C4033]">
+                    <i class="fa-regular fa-trash-can text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="font-extrabold text-forest-brown text-base">投稿を完全に削除しますか？</h3>
+                    <p class="text-xs font-bold text-forest-brown/60">この操作はやり直すことができません。</p>
+                </div>
+            </div>
+            <div class="flex space-x-2 pt-2">
+                <button id="cancel-delete-btn" class="flex-1 bg-forest-soft hover:bg-forest-soft/85 border-2 border-forest-brown font-bold py-2.5 px-4 rounded-xl text-sm text-forest-brown shadow-[2px_2px_0px_0px_#5C4033] active:translate-y-0.5 active:shadow-none">
+                    いいえ、残す
+                </button>
+                <button id="confirm-delete-btn" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 px-4 rounded-xl text-sm border-2 border-forest-brown shadow-[2px_2px_0px_0px_#5C4033] active:translate-y-0.5 active:shadow-none">
+                    削除する
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t-3 border-forest-brown py-6 mt-12">
+        <div class="max-w-4xl mx-auto px-4 text-center text-xs font-bold text-forest-brown/50 space-y-2">
+            <p>© 2026 Dnevnikki. All rights reserved.</p>
+            <p>※クラス識別: URL末尾のハッシュ（例: <code>#eng_beginner</code>）で別クラスの名簿・日記を管理できます。</p>
+        </div>
+    </footer>
+
+    <!-- JS LOGIC & FIREBASE SETUP -->
+    <script>
+        // --- OFFLINE/LOCAL MOCK DETECTION ---
+        let isMockMode = false;
+        
+        // --- FIREBASE CONFIG ---
+        const firebaseConfig = typeof __firebase_config !== 'undefined' 
+            ? JSON.parse(__firebase_config) 
+            : {
+                apiKey: "", 
+                authDomain: "mock-app.firebaseapp.com",
+                projectId: "mock-app",
+                storageBucket: "mock-app.appspot.com",
+                messagingSenderId: "1234567890",
+                appId: "1:1234567890:web:mock-app"
+            };
+
+        let db;
+        let auth;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'lingo-diary-v1';
+        const classId = getClassId();
+
+        document.getElementById('class-indicator').innerHTML = `クラス: <strong class="text-forest-greenDark">${classId}</strong>`;
+
+        if (!firebaseConfig.apiKey) {
+            isMockMode = true;
+            document.getElementById('db-state-badge').classList.remove('hidden');
+        } else {
+            try {
+                const app = firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+                auth = firebase.auth();
+            } catch (err) {
+                isMockMode = true;
+                document.getElementById('db-state-badge').classList.remove('hidden');
+            }
+        }
+
+        function getClassId() {
+            const hash = window.location.hash.substring(1).trim();
+            return hash ? decodeURIComponent(hash) : 'default_class';
+        }
+
+        // --- PATH DEFINITIONS ---
+        const configDocPath = !isMockMode ? db.doc(`artifacts/${appId}/public/data/class_configs/${classId}`) : null;
+        const diaryCollection = !isMockMode ? db.collection(`artifacts/${appId}/public/data/diaries_${classId}`) : null;
+
+        // --- GLOBAL STATE ---
+        let currentUserMap = {}; // { 'username': 'passcode' }
+        let currentSelectedUser = "";
+        let isUserVerified = false;
+        let activeReadScope = 'yesterday';
+        let pendingDeleteId = null;
+        let storedAdminPassword = ""; // Securely loaded admin password
+
+        // --- LOCAL STORAGE DATA (MOCK DB) ---
+        const defaultMockConfig = {
+            users: ["山田 太郎, 1234", "佐藤 花子, 5678", "鈴木 一郎, 0000"],
+            adminPassword: "" // Empty means unset
+        };
+        const defaultMockDiaries = [
+            {
+                id: "mock-1",
+                userName: "佐藤 花子",
+                diaryDate: getYesterdayDateString(),
+                submissionType: "text",
+                content: "Today, I learned the difference between 'make' and 'do'. It was incredibly helpful to write down examples. I want to keep practicing every single day!",
+                translation: "今日、「make」と「do」の違いを学びました。例文を書き出してみるのがとても役立ちました。毎日練習し続けたいです！",
+                imageUrl: "",
+                isVisible: true,
+                createdAt: { seconds: Math.floor(Date.now() / 1000) - 3600 }
+            }
+        ];
+
+        if (localStorage.getItem(`mock_config_${classId}`) === null) {
+            localStorage.setItem(`mock_config_${classId}`, JSON.stringify(defaultMockConfig));
+        }
+        if (localStorage.getItem(`mock_diaries_${classId}`) === null) {
+            localStorage.setItem(`mock_diaries_${classId}`, JSON.stringify(defaultMockDiaries));
+        }
+
+        // --- TOAST NOTIFICATIONS ---
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const msgSpan = document.getElementById('toast-message');
+            
+            msgSpan.innerText = message;
+            container.className = `p-4 rounded-2xl text-sm font-bold border-3 border-forest-brown flex items-center justify-between shadow-[4px_4px_0px_0px_#5C4033] mb-4 `;
+            
+            if (type === 'success') {
+                container.classList.add('bg-emerald-100', 'text-emerald-900');
+            } else if (type === 'error') {
+                container.classList.add('bg-rose-100', 'text-rose-900');
+            } else {
+                container.classList.add('bg-amber-100', 'text-amber-900');
+            }
+            
+            container.classList.remove('hidden');
+            setTimeout(() => {
+                hideToast();
+            }, 6000);
+        }
+
+        function hideToast() {
+            const container = document.getElementById('toast-container');
+            if (container) container.classList.add('hidden');
+        }
+
+        // --- SIGN IN (RULE 3) ---
+        async function initializeAuth() {
+            if (isMockMode) return;
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await auth.signInWithCustomToken(__initial_auth_token);
+                } else {
+                    await auth.signInAnonymously();
+                }
+            } catch (error) {
+                isMockMode = true;
+                document.getElementById('db-state-badge').classList.remove('hidden');
+            }
+        }
+
+        // --- DATE CALCULATIONS ---
+        function getLocalDateString(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        function getYesterdayDateString() {
+            const date = new Date();
+            date.setDate(date.getDate() - 1);
+            return getLocalDateString(date);
+        }
+
+        document.getElementById('diary-date').value = getLocalDateString(new Date());
+        const yesterdayStr = getYesterdayDateString();
+
+        // --- TAB NAVIGATION ---
+        const tabWrite = document.getElementById('tab-write');
+        const tabRead = document.getElementById('tab-read');
+        const writeSection = document.getElementById('write-section');
+        const readSection = document.getElementById('read-section');
+        const unverifiedBlocker = document.getElementById('unverified-blocker');
+
+        function updateScreenVisibility() {
+            if (!currentSelectedUser || !isUserVerified) {
+                unverifiedBlocker.classList.remove('hidden');
+                writeSection.classList.add('hidden');
+                readSection.classList.add('hidden');
+            } else {
+                unverifiedBlocker.classList.add('hidden');
+                if (tabWrite.classList.contains('bg-forest-green')) {
+                    writeSection.classList.remove('hidden');
+                    readSection.classList.add('hidden');
+                } else {
+                    writeSection.classList.add('hidden');
+                    readSection.classList.remove('hidden');
+                    loadDiariesByActiveScope();
+                }
+            }
+        }
+
+        tabWrite.addEventListener('click', () => {
+            tabWrite.className = "py-3 text-base font-bold rounded-xl bg-forest-green text-white border-2 border-forest-brown shadow-[2px_2px_0px_0px_#5C4033] transition-all flex items-center justify-center space-x-2";
+            tabRead.className = "py-3 text-base font-bold rounded-xl text-forest-brown hover:text-forest-brown/80 hover:bg-white/40 transition-all flex items-center justify-center space-x-2";
+            updateScreenVisibility();
+        });
+
+        tabRead.addEventListener('click', () => {
+            tabRead.className = "py-3 text-base font-bold rounded-xl bg-forest-green text-white border-2 border-forest-brown shadow-[2px_2px_0px_0px_#5C4033] transition-all flex items-center justify-center space-x-2";
+            tabWrite.className = "py-3 text-base font-bold rounded-xl text-forest-brown hover:text-forest-brown/80 hover:bg-white/40 transition-all flex items-center justify-center space-x-2";
+            updateScreenVisibility();
+        });
+
+        // --- READ SUB-TAB NAVIGATION ---
+        const subtabYesterday = document.getElementById('read-subtab-yesterday');
+        const subtabMyAll = document.getElementById('read-subtab-myall');
+
+        subtabYesterday.addEventListener('click', () => {
+            activeReadScope = 'yesterday';
+            subtabYesterday.className = "py-2 px-1 text-base font-extrabold border-b-4 border-forest-green text-forest-green transition flex items-center space-x-1.5";
+            subtabMyAll.className = "py-2 px-1 text-base font-bold border-b-4 border-transparent text-forest-brown/50 hover:text-forest-brown transition flex items-center space-x-1.5";
+            loadDiariesByActiveScope();
+        });
+
+        subtabMyAll.addEventListener('click', () => {
+            activeReadScope = 'myall';
+            subtabMyAll.className = "py-2 px-1 text-base font-extrabold border-b-4 border-forest-green text-forest-green transition flex items-center space-x-1.5";
+            subtabYesterday.className = "py-2 px-1 text-base font-bold border-b-4 border-transparent text-forest-brown/50 hover:text-forest-brown transition flex items-center space-x-1.5";
+            loadDiariesByActiveScope();
+        });
+
+        // --- USER SELECT & PASSCODE LOGIC ---
+        const userSelect = document.getElementById('user-select');
+        const passcodeVerificationBox = document.getElementById('passcode-verification-box');
+        const userPasscodeInput = document.getElementById('user-passcode-input');
+        const verifyPasscodeBtn = document.getElementById('verify-passcode-btn');
+
+        userSelect.addEventListener('change', () => {
+            const selectedVal = userSelect.value;
+            currentSelectedUser = selectedVal;
+            isUserVerified = false;
+
+            const sessionAuth = sessionStorage.getItem(`auth_${classId}_${selectedVal}`);
+            if (sessionAuth === "true") {
+                isUserVerified = true;
+                passcodeVerificationBox.classList.add('hidden');
+                showToast(`${selectedVal} さん、自動ログインしました。`);
+            } else {
+                passcodeVerificationBox.classList.remove('hidden');
+                userPasscodeInput.value = "";
+                userPasscodeInput.focus();
+            }
+            updateScreenVisibility();
+        });
+
+        verifyPasscodeBtn.addEventListener('click', () => {
+            const code = userPasscodeInput.value.trim();
+            const correctCode = currentUserMap[currentSelectedUser];
+
+            if (correctCode && code === correctCode) {
+                isUserVerified = true;
+                sessionStorage.setItem(`auth_${classId}_${currentSelectedUser}`, "true");
+                passcodeVerificationBox.classList.add('hidden');
+                showToast(`${currentSelectedUser} さん、認証に成功しました。`);
+                updateScreenVisibility();
+            } else {
+                showToast("パスコードが一致しません。登録された4桁の正しい数字を入れてください。", "error");
+            }
+        });
+
+        userPasscodeInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                verifyPasscodeBtn.click();
+            }
+        });
+
+        // --- SUBMISSION TYPE TOGGLE ---
+        const typeTextRadio = document.querySelector('input[value="text"]');
+        const typeImageRadio = document.querySelector('input[value="image"]');
+        const typeTextLabel = document.getElementById('type-text-label');
+        const typeImageLabel = document.getElementById('type-image-label');
+        const inputTextContainer = document.getElementById('input-text-container');
+        const inputImageContainer = document.getElementById('input-image-container');
+
+        typeTextRadio.addEventListener('change', () => {
+            typeTextLabel.className = "border-3 border-forest-green bg-[#EDF7ED] rounded-2xl p-3 flex items-center justify-center space-x-2 cursor-pointer transition-all hover:bg-forest-light";
+            typeImageLabel.className = "border-3 border-forest-soft rounded-2xl p-3 flex items-center justify-center space-x-2 cursor-pointer transition-all hover:bg-forest-light";
+            inputTextContainer.classList.remove('hidden');
+            inputImageContainer.classList.add('hidden');
+        });
+
+        typeImageRadio.addEventListener('change', () => {
+            typeImageLabel.className = "border-3 border-forest-green bg-[#EDF7ED] rounded-2xl p-3 flex items-center justify-center space-x-2 cursor-pointer transition-all hover:bg-forest-light";
+            typeTextLabel.className = "border-3 border-forest-soft rounded-2xl p-3 flex items-center justify-center space-x-2 cursor-pointer transition-all hover:bg-forest-light";
+            inputImageContainer.classList.remove('hidden');
+            inputTextContainer.classList.add('hidden');
+        });
+
+        // --- IMAGE HANDLING AND MOCK OCR ---
+        const fileInput = document.getElementById('diary-image-file');
+        const dropZone = document.getElementById('drop-zone');
+        const imagePreviewBox = document.getElementById('image-preview-box');
+        const previewImgTag = document.getElementById('preview-img-tag');
+        const previewImgName = document.getElementById('preview-img-name');
+        const removeImgBtn = document.getElementById('remove-img-btn');
+        const diaryImageCaption = document.getElementById('diary-image-caption');
+        let selectedBase64Image = null;
+
+        fileInput.addEventListener('change', handleFileSelect);
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('border-forest-green', 'bg-[#FAF6F0]');
+        });
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('border-forest-green', 'bg-[#FAF6F0]');
+        });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-forest-green', 'bg-[#FAF6F0]');
+            if (e.dataTransfer.files.length > 0) {
+                fileInput.files = e.dataTransfer.files;
+                handleFileSelect();
+            }
+        });
+
+        function handleFileSelect() {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            if (file.size > 5 * 1024 * 1024) {
+                showToast("画像サイズは5MB以下にしてください。", "error");
+                fileInput.value = "";
+                return;
+            }
+
+            previewImgName.innerText = file.name;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                selectedBase64Image = e.target.result;
+                previewImgTag.src = selectedBase64Image;
+                imagePreviewBox.classList.remove('hidden');
+                
+                diaryImageCaption.value = "読み込み中...";
+                setTimeout(() => {
+                    diaryImageCaption.value = `[OCRによる手書き文字起こし] Today was an amazing day! I studied French for two hours in the library and drank green tea. 🍵`;
+                    showToast("画像のテキスト解析（疑似OCR）に成功しました！");
+                }, 1000);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        removeImgBtn.addEventListener('click', () => {
+            fileInput.value = "";
+            selectedBase64Image = null;
+            imagePreviewBox.classList.add('hidden');
+            diaryImageCaption.value = "";
+        });
+
+        // --- LOAD CONFIG & USERS LIST ---
+        function loadClassConfig() {
+            const userSelect = document.getElementById('user-select');
+            const userBulk = document.getElementById('admin-user-bulk');
+            const chipsContainer = document.getElementById('admin-user-chips-container');
+            const passInputLabel = document.getElementById('admin-pass-input-label');
+            
+            const currentSelectedValue = userSelect.value;
+            userSelect.innerHTML = '<option value="" disabled selected>名前を選択してください</option>';
+            chipsContainer.innerHTML = '';
+            currentUserMap = {};
+
+            const parseAndRenderConfig = (data) => {
+                const rawUsers = data.users || [];
+                storedAdminPassword = data.adminPassword || "";
+
+                if (storedAdminPassword) {
+                    passInputLabel.innerText = "管理者パスワード (※設定された管理者用パスワードを入力してください)";
+                } else {
+                    passInputLabel.innerText = "管理者パスワード (※現在未設定のため、そのままログイン可能です)";
+                }
+
+                const bulkTextList = [];
+                rawUsers.forEach(userString => {
+                    const splitted = userString.split(',');
+                    if (splitted.length >= 2) {
+                        const name = splitted[0].trim();
+                        const code = splitted[1].trim();
+                        if (name && code) {
+                            currentUserMap[name] = code;
+                            bulkTextList.push(`${name}, ${code}`);
+
+                            const opt = document.createElement('option');
+                            opt.value = name;
+                            opt.textContent = name;
+                            userSelect.appendChild(opt);
+
+                            const chip = document.createElement('span');
+                            chip.className = "bg-forest-light border-2 border-forest-brown text-forest-brown text-xs font-bold px-3 py-1.5 rounded-xl flex items-center space-x-1.5 shadow-[1px_1px_0px_0px_#5C4033]";
+                            chip.innerHTML = `<i class="fa-solid fa-user-lock text-forest-clay"></i> <span>${name} (${code})</span>`;
+                            chipsContainer.appendChild(chip);
+                        }
+                    }
+                });
+
+                userBulk.value = bulkTextList.join('\n');
+
+                if (currentUserMap[currentSelectedValue]) {
+                    userSelect.value = currentSelectedValue;
+                }
+            };
+
+            if (isMockMode) {
+                const localData = JSON.parse(localStorage.getItem(`mock_config_${classId}`) || '{"users":[],"adminPassword":""}');
+                parseAndRenderConfig(localData);
+            } else {
+                configDocPath.get().then((docSnapshot) => {
+                    if (docSnapshot.exists) {
+                        parseAndRenderConfig(docSnapshot.data());
+                    } else {
+                        userBulk.value = "";
+                        chipsContainer.innerHTML = '<span class="text-forest-brown/60 text-sm italic">名簿が未登録です。管理モードから登録してください。</span>';
+                    }
+                }).catch(err => {
+                    console.error("Config load error:", err);
+                    const localData = JSON.parse(localStorage.getItem(`mock_config_${classId}`) || '{"users":[],"adminPassword":""}');
+                    parseAndRenderConfig(localData);
+                });
+            }
+        }
+
+        // --- SUBMIT DIARY ACTION ---
+        const diaryForm = document.getElementById('diary-form');
+        diaryForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!isUserVerified) {
+                showToast("パスコード認証が完了していません。再度ログインしてください。", "error");
+                return;
+            }
+
+            const diaryDate = document.getElementById('diary-date').value;
+            const subType = document.querySelector('input[name="submission-type"]:checked').value;
+
+            let textData = "";
+            let translationData = "";
+            let imageData = null;
+
+            if (subType === 'text') {
+                textData = document.getElementById('diary-content').value.trim();
+                translationData = document.getElementById('diary-translation').value.trim();
+                if (!textData) {
+                    showToast("日記の本文を入力してください。", "error");
+                    return;
+                }
+            } else {
+                if (!selectedBase64Image) {
+                    showToast("ノート画像をアップロードしてください。", "error");
+                    return;
+                }
+                textData = document.getElementById('diary-image-caption').value.trim();
+                imageData = selectedBase64Image;
+            }
+
+            const payload = {
+                userName: currentSelectedUser,
+                diaryDate: diaryDate,
+                submissionType: subType,
+                content: textData,
+                translation: translationData || "",
+                imageUrl: imageData || "",
+                createdAt: { seconds: Math.floor(Date.now() / 1000) },
+                authorUid: (!isMockMode && auth.currentUser) ? auth.currentUser.uid : 'mock-user-id',
+                isVisible: true
+            };
+
+            const submitBtn = document.getElementById('submit-diary-btn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> <span>送信中...</span>';
+
+            const onSaveSuccess = () => {
+                showToast("日記を無事提出しました！✨");
+                document.getElementById('diary-content').value = "";
+                document.getElementById('diary-translation').value = "";
+                fileInput.value = "";
+                selectedBase64Image = null;
+                imagePreviewBox.classList.add('hidden');
+                document.getElementById('diary-image-caption').value = "";
+                tabRead.click();
+            };
+
+            if (isMockMode) {
+                const mockList = JSON.parse(localStorage.getItem(`mock_diaries_${classId}`) || '[]');
+                payload.id = 'mock-' + Date.now();
+                mockList.unshift(payload);
+                localStorage.setItem(`mock_diaries_${classId}`, JSON.stringify(mockList));
+                setTimeout(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane text-lg"></i> <span>日記を提出する</span>';
+                    onSaveSuccess();
+                }, 500);
+            } else {
+                payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                diaryCollection.add(payload).then(() => {
+                    onSaveSuccess();
+                }).catch(err => {
+                    console.error("Save error:", err);
+                    isMockMode = true;
+                    const mockList = JSON.parse(localStorage.getItem(`mock_diaries_${classId}`) || '[]');
+                    payload.id = 'mock-' + Date.now();
+                    payload.createdAt = { seconds: Math.floor(Date.now() / 1000) };
+                    mockList.unshift(payload);
+                    localStorage.setItem(`mock_diaries_${classId}`, JSON.stringify(mockList));
+                    onSaveSuccess();
+                }).finally(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane text-lg"></i> <span>日記を提出する</span>';
+                });
+            }
+        });
+
+        // --- LOAD DIARIES ON READ MODE ---
+        function loadDiariesByActiveScope() {
+            const scopeTitle = document.getElementById('read-scope-title');
+            const scopeSubtitle = document.getElementById('read-scope-subtitle');
+
+            if (activeReadScope === 'yesterday') {
+                scopeTitle.innerText = "昨日のみんなの日記を表示中";
+                scopeSubtitle.innerText = `対象日: ${yesterdayStr}`;
+                loadYesterdayDiaries();
+            } else {
+                scopeTitle.innerText = `自分の過去日記一覧 (すべて)`;
+                scopeSubtitle.innerText = `過去すべてのあなたの学習記録履歴を表示しています`;
+                loadMyAllDiaries();
+            }
+        }
+
+        function loadYesterdayDiaries() {
+            const container = document.getElementById('diaries-list-container');
+            container.innerHTML = `
+                <div class="toy-card p-6 text-center text-forest-brown/60 bg-white">
+                    <i class="fa-solid fa-spinner animate-spin text-2xl text-forest-green mb-2"></i>
+                    <p class="text-sm font-bold">日記を読み込んでいます...</p>
+                </div>
+            `;
+
+            const handleDiaries = (diaries) => {
+                container.innerHTML = "";
+                const filtered = diaries.filter(d => d.diaryDate === yesterdayStr && d.isVisible !== false);
+
+                if (filtered.length === 0) {
+                    container.innerHTML = `
+                        <div class="toy-card p-8 text-center text-forest-brown/60 bg-white space-y-2">
+                            <i class="fa-regular fa-calendar-times text-3xl text-forest-brown/40"></i>
+                            <p class="font-bold text-forest-brown">昨日(${yesterdayStr})の日記はまだ投稿されていません</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                filtered.sort((a, b) => {
+                    const tA = a.createdAt ? a.createdAt.seconds : 0;
+                    const tB = b.createdAt ? b.createdAt.seconds : 0;
+                    return tB - tA;
+                });
+
+                renderDiariesList(filtered, container);
+            };
+
+            if (isMockMode) {
+                const mockList = JSON.parse(localStorage.getItem(`mock_diaries_${classId}`) || '[]');
+                setTimeout(() => handleDiaries(mockList), 300);
+            } else {
+                diaryCollection.get().then((querySnapshot) => {
+                    const diaries = [];
+                    querySnapshot.forEach(doc => {
+                        const data = doc.data();
+                        data.id = doc.id;
+                        diaries.push(data);
+                    });
+                    handleDiaries(diaries);
+                }).catch(err => {
+                    const mockList = JSON.parse(localStorage.getItem(`mock_diaries_${classId}`) || '[]');
+                    handleDiaries(mockList);
+                });
+            }
+        }
+
+        function loadMyAllDiaries() {
+            const container = document.getElementById('diaries-list-container');
+            container.innerHTML = `
+                <div class="toy-card p-6 text-center text-forest-brown/60 bg-white">
+                    <i class="fa-solid fa-spinner animate-spin text-2xl text-forest-green mb-2"></i>
+                    <p class="text-sm font-bold">あなたの過去日記を読み込んでいます...</p>
+                </div>
+            `;
+
+            const handleMyDiaries = (diaries) => {
+                container.innerHTML = "";
+                const filtered = diaries.filter(d => d.userName === currentSelectedUser);
+
+                if (filtered.length === 0) {
+                    container.innerHTML = `
+                        <div class="toy-card p-8 text-center text-forest-brown/60 bg-white space-y-2">
+                            <i class="fa-solid fa-feather text-3xl text-forest-brown/30"></i>
+                            <p class="font-bold text-forest-brown">提出された過去日記はありません</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                filtered.sort((a, b) => b.diaryDate.localeCompare(a.diaryDate));
+                renderDiariesList(filtered, container, true);
+            };
+
+            if (isMockMode) {
+                const mockList = JSON.parse(localStorage.getItem(`mock_diaries_${classId}`) || '[]');
+                setTimeout(() => handleMyDiaries(mockList), 300);
+            } else {
+                diaryCollection.get().then((querySnapshot) => {
+                    const diaries = [];
+                    querySnapshot.forEach(doc => {
+                        const data = doc.data();
+                        data.id = doc.id;
+                        diaries.push(data);
+                    });
+                    handleMyDiaries(diaries);
+                }).catch(err => {
+                    const mockList = JSON.parse(localStorage.getItem(`mock_diaries_${classId}`) || '[]');
+                    handleMyDiaries(mockList);
+                });
+            }
+        }
+
+        // --- CARD RENDERER ---
+        function renderDiariesList(diaries, container, showStatus = false) {
+            diaries.forEach(diary => {
+                const card = document.createElement('div');
+                card.className = "toy-card p-5 space-y-4 bg-white relative overflow-hidden";
+                
+                let visibilityBadge = "";
+                if (showStatus && diary.isVisible === false) {
+                    visibilityBadge = `
+                        <span class="absolute top-0 right-0 bg-rose-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl border-b-2 border-l-2 border-forest-brown">
+                            非公開設定（管理者）
+                        </span>
+                    `;
+                }
+
+                let contentHTML = "";
+                if (diary.submissionType === 'image' && diary.imageUrl) {
+                    contentHTML = `
+                        <div class="flex flex-col md:flex-row gap-4">
+                            <div class="md:w-1/3">
+                                <img src="${diary.imageUrl}" class="w-full h-auto rounded-2xl border-3 border-forest-brown shadow-[2px_2px_0px_0px_#5C4033] cursor-zoom-in" onclick="openImageModal('${diary.imageUrl}')" alt="ノート日記写真">
+                            </div>
+                            <div class="md:w-2/3 space-y-2">
+                                <p class="text-xs font-black text-forest-clay uppercase tracking-wider"><i class="fa-solid fa-wand-magic-sparkles"></i> 認識テキスト・メモ</p>
+                                <p class="text-forest-brown whitespace-pre-wrap font-bold bg-forest-light border-2 border-forest-brown p-3 rounded-2xl text-sm leading-relaxed">${escapeHTML(diary.content)}</p>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    contentHTML = `
+                        <div class="space-y-3">
+                            <p class="text-forest-brown font-extrabold text-base whitespace-pre-wrap leading-relaxed ruled-paper p-1">${escapeHTML(diary.content)}</p>
+                            ${diary.translation ? `
+                                <div class="bg-forest-light border-l-4 border-forest-green p-3 rounded-r-2xl border-t border-b border-r border-forest-brown/20 shadow-[2px_2px_0px_0px_rgba(92,64,51,0.1)]">
+                                    <p class="text-[10px] font-black text-forest-brown/50 mb-1">日本語訳・メモ</p>
+                                    <p class="text-xs text-forest-brown font-bold whitespace-pre-wrap">${escapeHTML(diary.translation)}</p>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    ${visibilityBadge}
+                    <div class="flex items-center justify-between border-b-2 border-dashed border-forest-brown/20 pb-3">
+                        <div class="flex items-center space-x-2.5">
+                            <div class="w-9 h-9 rounded-full bg-forest-soft border-2 border-forest-brown flex items-center justify-center text-forest-brown font-black text-xs uppercase shadow-[1px_1px_0px_0px_#5C4033]">
+                                ${diary.userName.slice(0, 2)}
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-black text-forest-brown">${escapeHTML(diary.userName)}</h4>
+                                <p class="text-[10px] font-bold text-forest-brown/50">${diary.diaryDate} の日記</p>
+                            </div>
+                        </div>
+                        <span class="text-xs bg-forest-light border-2 border-forest-brown text-forest-brown font-semibold py-1 px-2.5 rounded-full shadow-[1px_1px_0px_0px_#5C4033]">
+                            ${diary.submissionType === 'image' ? '<i class="fa-regular fa-image"></i> 画像提出' : '<i class="fa-regular fa-keyboard"></i> キーボード'}
+                        </span>
+                    </div>
+                    ${contentHTML}
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        document.getElementById('refresh-diaries').addEventListener('click', loadDiariesByActiveScope);
+
+        // --- ADMIN AUTH & DASHBOARD CONTROLS (CUSTOM MODALS) ---
+        const adminModeBtn = document.getElementById('admin-mode-btn');
+        const userView = document.getElementById('user-view');
+        const adminView = document.getElementById('admin-view');
+        const exitAdminBtn = document.getElementById('exit-admin-btn');
+        
+        // Modal elements
+        const adminAuthModal = document.getElementById('admin-auth-modal');
+        const adminSecretInput = document.getElementById('admin-secret-input');
+        const adminAuthErrorMsg = document.getElementById('admin-auth-error-msg');
+        const confirmAdminAuthBtn = document.getElementById('confirm-admin-auth-btn');
+        const cancelAdminAuthBtn = document.getElementById('cancel-admin-auth-btn');
+
+        // Open Auth Modal
+        adminModeBtn.addEventListener('click', () => {
+            adminAuthModal.classList.remove('hidden');
+            adminSecretInput.value = "";
+            adminSecretInput.focus();
+            adminAuthErrorMsg.classList.add('hidden');
+        });
+
+        // Cancel Auth
+        cancelAdminAuthBtn.addEventListener('click', () => {
+            adminAuthModal.classList.add('hidden');
+        });
+
+        // Confirm Auth
+        confirmAdminAuthBtn.addEventListener('click', () => {
+            const secret = adminSecretInput.value.trim();
+            if (!storedAdminPassword || secret === storedAdminPassword) {
+                adminAuthModal.classList.add('hidden');
+                userView.classList.add('hidden');
+                adminView.classList.remove('hidden');
+                loadClassConfig();
+                loadModerationDiaries();
+            } else {
+                adminAuthErrorMsg.classList.remove('hidden');
+            }
+        });
+
+        adminSecretInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                confirmAdminAuthBtn.click();
+            }
+        });
+
+        // Exit Admin Dashboard
+        exitAdminBtn.addEventListener('click', () => {
+            adminView.classList.add('hidden');
+            userView.classList.remove('hidden');
+            loadClassConfig();
+            updateScreenVisibility();
+        });
+
+        // ADMIN: Save Password Handler
+        const adminNewPasswordInput = document.getElementById('admin-new-password-input');
+        const saveAdminPasswordBtn = document.getElementById('save-admin-password-btn');
+
+        saveAdminPasswordBtn.addEventListener('click', () => {
+            const newPassword = adminNewPasswordInput.value.trim();
+            if (!newPassword) {
+                showToast("有効な管理者パスワードを入力してください。", "error");
+                return;
+            }
+
+            saveAdminPasswordBtn.disabled = true;
+            saveAdminPasswordBtn.innerText = "更新中...";
+
+            const onUpdateSuccess = () => {
+                showToast("管理者パスワードを更新しました。次回からこのキーでのログインが必須になります！");
+                adminNewPasswordInput.value = "";
+                loadClassConfig();
+            };
+
+            if (isMockMode) {
+                const configPayload = JSON.parse(localStorage.getItem(`mock_config_${classId}`) || '{"users":[]}');
+                configPayload.adminPassword = newPassword;
+                localStorage.setItem(`mock_config_${classId}`, JSON.stringify(configPayload));
+                setTimeout(() => {
+                    saveAdminPasswordBtn.disabled = false;
+                    saveAdminPasswordBtn.innerText = "パスワード変更";
+                    onUpdateSuccess();
+                }, 400);
+            } else {
+                configDocPath.set({
+                    adminPassword: newPassword
+                }, { merge: true }).then(() => {
+                    onUpdateSuccess();
+                }).catch(err => {
+                    console.error("Save config password error:", err);
+                    isMockMode = true;
+                    const configPayload = JSON.parse(localStorage.getItem(`mock_config_${classId}`) || '{"users":[]}');
+                    configPayload.adminPassword = newPassword;
+                    localStorage.setItem(`mock_config_${classId}`, JSON.stringify(configPayload));
+                    onUpdateSuccess();
+                }).finally(() => {
+                    saveAdminPasswordBtn.disabled = false;
+                    saveAdminPasswordBtn.innerText = "パスワード変更";
+                });
+            }
+        });
+
+        // Tab switches inside Admin
+        const adminTabUsers = document.getElementById('admin-tab-users');
+        const adminTabModeration = document.getElementById('admin-tab-moderation');
+        const adminUsersSection = document.getElementById('admin-users-section');
+        const adminModerationSection = document.getElementById('admin-moderation-section');
+
+        adminTabUsers.addEventListener('click', () => {
+            adminTabUsers.className = "py-2 px-1 text-sm font-black border-b-4 border-forest-green text-forest-green transition";
+            adminTabModeration.className = "py-2 px-1 text-sm font-bold border-b-4 border-transparent text-forest-brown/50 hover:text-forest-brown transition";
+            adminUsersSection.classList.remove('hidden');
+            adminModerationSection.classList.add('hidden');
+        });
+
+        adminTabModeration.addEventListener('click', () => {
+            adminTabModeration.className = "py-2 px-1 text-sm font-black border-b-4 border-forest-green text-forest-green transition";
+            adminTabUsers.className = "py-2 px-1 text-sm font-bold border-b-4 border-transparent text-forest-brown/50 hover:text-forest-brown transition";
+            adminModerationSection.classList.remove('hidden');
+            adminUsersSection.classList.add('hidden');
+            loadModerationDiaries();
+        });
+
+        // --- SAVE ADMIN CONFIG (USERS LIST) ---
+        const saveUsersBtn = document.getElementById('save-users-btn');
+        saveUsersBtn.addEventListener('click', async () => {
+            const bulkText = document.getElementById('admin-user-bulk').value;
+            const parsedLines = bulkText
+                .split('\n')
+                .map(line => line.trim())
+                .filter(line => {
+                    const splitted = line.split(',');
+                    return splitted.length >= 2 && splitted[0].trim() && splitted[1].trim();
+                });
+
+            saveUsersBtn.disabled = true;
+            saveUsersBtn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> <span>保存中...</span>';
+
+            const onSaveSuccess = () => {
+                showToast("ユーザー名簿を同期・保存しました。");
+                loadClassConfig();
+            };
+
+            if (isMockMode) {
+                const configPayload = JSON.parse(localStorage.getItem(`mock_config_${classId}`) || '{"adminPassword":""}');
+                configPayload.users = parsedLines;
+                localStorage.setItem(`mock_config_${classId}`, JSON.stringify(configPayload));
+                setTimeout(() => {
+                    saveUsersBtn.disabled = false;
+                    saveUsersBtn.innerHTML = '<i class="fa-regular fa-floppy-disk"></i> <span>ユーザー名簿を保存・更新</span>';
+                    onSaveSuccess();
+                }, 500);
+            } else {
+                configDocPath.set({
+                    users: parsedLines,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true }).then(() => {
+                    onSaveSuccess();
+                }).catch(err => {
+                    console.error("Save config error, fallback to mock update:", err);
+                    isMockMode = true;
+                    const configPayload = JSON.parse(localStorage.getItem(`mock_config_${classId}`) || '{"adminPassword":""}');
+                    configPayload.users = parsedLines;
+                    localStorage.setItem(`mock_config_${classId}`, JSON.stringify(configPayload));
+                    onSaveSuccess();
+                }).finally(() => {
+                    saveUsersBtn.disabled = false;
+                    saveUsersBtn.innerHTML = '<i class="fa-regular fa-floppy-disk"></i> <span>ユーザー名簿を保存・更新</span>';
+                });
+            }
+        });
+
+        document.getElementById('clear-users-btn').addEventListener('click', () => {
+            document.getElementById('admin-user-bulk').value = "";
+        });
+
+        // --- LOAD MODERATION LIST ---
+        function loadModerationDiaries() {
+            const listContainer = document.getElementById('admin-diaries-moderation-list');
+            listContainer.innerHTML = '<p class="text-forest-brown/60 text-sm italic text-center py-8">日記データを取得中...</p>';
+
+            const handleModeration = (diaries) => {
+                listContainer.innerHTML = "";
+                if (diaries.length === 0) {
+                    listContainer.innerHTML = '<p class="text-forest-brown/60 text-sm italic text-center py-8">投稿された日記はありません。</p>';
+                    return;
+                }
+
+                diaries.sort((a, b) => b.diaryDate.localeCompare(a.diaryDate));
+
+                diaries.forEach(diary => {
+                    const div = document.createElement('div');
+                    div.className = `border-3 rounded-2xl p-4 transition shadow-[2px_2px_0px_0px_#5C4033] ${diary.isVisible === false ? 'bg-rose-50 border-rose-300 text-rose-900' : 'bg-white border-forest-brown'}`;
+                    
+                    div.innerHTML = `
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                            <div>
+                                <span class="bg-forest-soft text-forest-brown text-[10px] font-bold px-2.5 py-1 rounded-full border-2 border-forest-brown shadow-[1px_1px_0px_0px_#5C4033]">${diary.diaryDate}</span>
+                                <span class="text-sm font-black text-forest-brown ml-2">${escapeHTML(diary.userName)}</span>
+                                <p class="text-xs font-bold text-forest-brown/70 mt-1 whitespace-pre-wrap">${escapeHTML(diary.content)}</p>
+                            </div>
+                            <div class="flex items-center space-x-2 shrink-0">
+                                <button onclick="toggleVisibility('${diary.id}', ${diary.isVisible !== false})" class="text-xs font-bold px-3 py-1.5 rounded-xl border-2 border-forest-brown shadow-[2px_2px_0px_0px_#5C4033] active:translate-y-0.5 active:shadow-none transition-all ${diary.isVisible === false ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                                    ${diary.isVisible === false ? '<i class="fa-solid fa-eye"></i> 公開' : '<i class="fa-solid fa-eye-slash"></i> 非表示'}
+                                </button>
+                                <button onclick="triggerDeleteDiary('${diary.id}')" class="text-xs bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold px-3 py-1.5 rounded-xl border-2 border-forest-brown shadow-[2px_2px_0px_0px_#5C4033] active:translate-y-0.5 active:shadow-none transition-all">
+                                    <i class="fa-regular fa-trash-can"></i> 削除
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    listContainer.appendChild(div);
+                });
+            };
+
+            if (isMockMode) {
+                const mockList = JSON.parse(localStorage.getItem(`mock_diaries_${classId}`) || '[]');
+                setTimeout(() => handleModeration(mockList), 300);
+            } else {
+                diaryCollection.get().then((querySnapshot) => {
+                    const diaries = [];
+                    querySnapshot.forEach(doc => {
+                        const data = doc.data();
+                        data.id = doc.id;
+                        diaries.push(data);
+                    });
+                    handleModeration(diaries);
+                }).catch(err => {
+                    const mockList = JSON.parse(localStorage.getItem(`mock_diaries_${classId}`) || '[]');
+                    handleModeration(mockList);
+                });
+            }
+        }
+
+        window.toggleVisibility = function(diaryId, currentVisible) {
+            const onToggleSuccess = () => {
+                showToast(`投稿を${currentVisible ? '非表示' : '公開'}に更新しました。`);
+                loadModerationDiaries();
+            };
+
+            if (isMockMode) {
+                const mockList = JSON.parse(localStorage.getItem(`mock_diaries_${classId}`) || '[]');
+                const found = mockList.find(d => d.id === diaryId);
+                if (found) {
+                    found.isVisible = !currentVisible;
+                    localStorage.setItem(`mock_diaries_${classId}`, JSON.stringify(mockList));
+                }
+                onToggleSuccess();
+            } else {
+                const docRef = diaryCollection.doc(diaryId);
+                docRef.update({
+                    isVisible: !currentVisible
+                }).then(() => {
+                    onToggleSuccess();
+                }).catch(err => {
+                    console.error("Firebase update failed:", err);
+                    onToggleSuccess();
+                });
+            }
+        };
+
+        // --- CUSTOM MODAL DELETE FLOW ---
+        const deleteConfirmModal = document.getElementById('delete-confirm-modal');
+        const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+        const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+
+        window.triggerDeleteDiary = function(diaryId) {
+            pendingDeleteId = diaryId;
+            deleteConfirmModal.classList.remove('hidden');
+        };
+
+        cancelDeleteBtn.addEventListener('click', () => {
+            deleteConfirmModal.classList.add('hidden');
+            pendingDeleteId = null;
+        });
+
+        confirmDeleteBtn.addEventListener('click', () => {
+            if (!pendingDeleteId) return;
+
+            const onDeleteSuccess = () => {
+                showToast("日記を削除しました。");
+                deleteConfirmModal.classList.add('hidden');
+                pendingDeleteId = null;
+                loadModerationDiaries();
+            };
+
+            if (isMockMode) {
+                let mockList = JSON.parse(localStorage.getItem(`mock_diaries_${classId}`) || '[]');
+                mockList = mockList.filter(d => d.id !== pendingDeleteId);
+                localStorage.setItem(`mock_diaries_${classId}`, JSON.stringify(mockList));
+                onDeleteSuccess();
+            } else {
+                const docRef = diaryCollection.doc(pendingDeleteId);
+                docRef.delete().then(() => {
+                    onDeleteSuccess();
+                }).catch(err => {
+                    console.error("Delete failed:", err);
+                    let mockList = JSON.parse(localStorage.getItem(`mock_diaries_${classId}`) || '[]');
+                    mockList = mockList.filter(d => d.id !== pendingDeleteId);
+                    localStorage.setItem(`mock_diaries_${classId}`, JSON.stringify(mockList));
+                    onDeleteSuccess();
+                });
+            }
+        });
+
+        // --- UTILS ---
+        function escapeHTML(str) {
+            if (!str) return '';
+            return str.replace(/[&<>'"]/g, 
+                tag => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    "'": '&#39;',
+                    '"': '&quot;'
+                }[tag] || tag)
+            );
+        }
+
+        window.openImageModal = function(src) {
+            const modal = document.createElement('div');
+            modal.className = "fixed inset-0 bg-black/90 z-[9999] flex items-center justify-center p-4 cursor-zoom-out";
+            modal.innerHTML = `<img src="${src}" class="max-w-full max-h-full rounded-2xl border-4 border-forest-brown shadow-2xl">`;
+            modal.onclick = () => modal.remove();
+            document.body.appendChild(modal);
+        }
+
+        // --- INITIALIZATION ---
+        window.addEventListener('load', async () => {
+            await initializeAuth();
+            loadClassConfig();
+            
+            window.addEventListener('hashchange', () => {
+                window.location.reload();
+            });
+        });
+
+    </script>
+</body>
+</html>
