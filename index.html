@@ -8,122 +8,38 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        forest: {
-                            light: '#FAF6F0',  // ほっこりミルクベージュ (ベース)
-                            soft: '#EBE4D8',   // 少し濃いサンドベージュ
-                            green: '#76A076',  // 優しいセージグリーン (メイン)
-                            greenDark: '#4D6B4D', // 濃い森の緑
-                            clay: '#D48A6A',   // ぬくもりのあるクッキーテラコッタ (アクセント)
-                            brown: '#5C4033',  // チョコレートブラウン (文字・フチ)
-                            sky: '#D6EAF8'     // 澄んだパステルブルー
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    <!-- Tesseract.js (Real Browser-side OCR Library) -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Zen+Maru+Gothic:wght@400;500;700&display=swap');
-        
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
         body {
-            font-family: 'Fredoka', 'Zen Maru Gothic', sans-serif;
-            background-color: #FAF6F0;
-        }
-
-        /* ぷにぷに3Dトイデザインのユーティリティ */
-        .toy-card {
-            border: 3px solid #5C4033;
-            border-radius: 24px;
-            background-color: #FFFFFF;
-            box-shadow: 4px 4px 0px 0px #5C4033;
-            transition: all 0.15s ease-in-out;
-        }
-
-        .toy-btn-active {
-            border: 3px solid #5C4033;
-            border-radius: 16px;
-            background-color: #76A076;
-            color: #FFFFFF;
-            box-shadow: 2px 2px 0px 0px #5C4033;
-            transform: translate(2px, 2px);
-        }
-
-        .toy-btn-interactive {
-            border: 3px solid #5C4033;
-            border-radius: 16px;
-            background-color: #FFFFFF;
-            color: #5C4033;
-            box-shadow: 4px 4px 0px 0px #5C4033;
-            transition: all 0.1s ease-in-out;
-        }
-        .toy-btn-interactive:hover {
-            background-color: #FAF6F0;
-        }
-        .toy-btn-interactive:active {
-            box-shadow: 0px 0px 0px 0px #5C4033;
-            transform: translate(4px, 4px);
-        }
-
-        .toy-btn-submit {
-            border: 3px solid #5C4033;
-            border-radius: 20px;
-            background-color: #D48A6A;
-            color: #FFFFFF;
-            box-shadow: 4px 4px 0px 0px #5C4033;
-            transition: all 0.1s ease-in-out;
-        }
-        .toy-btn-submit:hover {
-            background-color: #C57B5B;
-        }
-        .toy-btn-submit:active {
-            box-shadow: 0px 0px 0px 0px #5C4033;
-            transform: translate(4px, 4px);
-        }
-
-        /* 手書きノート風下線 */
-        .ruled-paper {
-            background-image: linear-gradient(#f0ebe1 1px, transparent 1px);
-            background-size: 100% 2rem;
-            line-height: 2rem;
+            font-family: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
         }
     </style>
 </head>
-<body class="text-forest-brown min-h-screen flex flex-col">
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
-    <!-- Firebase SDK (Compat Version) -->
+    <!-- Firebase SDK (Compat Version for simple integration) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
     <!-- App Header -->
-    <header class="bg-white border-b-4 border-forest-brown sticky top-0 z-50">
+    <header class="bg-white border-b border-slate-100 sticky top-0 z-50">
         <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-            <div class="flex items-center space-x-2.5">
-                <!-- Note + Pencil Icon Container -->
-                <div class="bg-forest-green text-white p-2.5 rounded-2xl border-2 border-forest-brown shadow-[2px_2px_0px_0px_#5C4033] flex items-center space-x-1 shrink-0">
-                    <i class="fa-solid fa-book text-lg"></i>
-                    <i class="fa-solid fa-pencil text-sm"></i>
+            <div class="flex items-center space-x-2">
+                <div class="bg-emerald-600 text-white p-2 rounded-xl">
+                    <i class="fa-solid fa-book-open text-lg"></i>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-bold tracking-tight text-forest-brown flex items-center gap-1.5">
-                        Dnevnikki
-                        <span class="text-xs bg-[#FAF1CC] text-[#B08D22] border-2 border-[#B08D22] px-2 py-0.5 rounded-full font-bold">
-                            ぬいつぎ
-                        </span>
-                    </h1>
-                    <p class="text-xs text-forest-brown/60 font-semibold" id="class-indicator">クラス: ロード中...</p>
+                    <h1 class="text-lg font-bold text-slate-900 tracking-tight">Dnevnikki</h1>
+                    <p class="text-xs text-slate-500" id="class-indicator">クラス: ロード中...</p>
                 </div>
             </div>
             
             <div class="flex items-center space-x-2">
-                <!-- Admin Toggle Button (管理モード) -->
-                <button id="admin-mode-btn" class="text-xs font-bold px-3 py-2.5 rounded-xl border-2 border-forest-brown bg-forest-soft hover:bg-forest-soft/80 text-forest-brown transition-all duration-100 shadow-[2px_2px_0px_0px_#5C4033] active:translate-y-0.5 active:shadow-[1px_1px_0px_0px_#5C4033] flex items-center space-x-1">
+                <!-- Admin Toggle Button -->
+                <button id="admin-mode-btn" class="text-xs font-semibold px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center space-x-1">
                     <i class="fa-solid fa-user-gear"></i>
                     <span>管理モード</span>
                 </button>
@@ -132,53 +48,46 @@
     </header>
 
     <!-- Main Content Container -->
-    <main class="flex-grow max-w-4xl w-full mx-auto p-4 space-y-6">
+    <main class="flex-grow max-w-4xl w-full mx-auto p-4">
         
         <!-- Database State Alert -->
-        <div id="db-state-badge" class="hidden mb-4 p-4 rounded-2xl border-3 border-forest-brown bg-[#FFF3CD] text-[#856404] text-xs font-bold flex items-center space-x-2 shadow-[2px_2px_0px_0px_#5C4033]">
-            <i class="fa-solid fa-circle-nodes animate-pulse text-base text-amber-600"></i>
+        <div id="db-state-badge" class="hidden mb-4 p-3 rounded-xl bg-amber-50 border border-amber-100 text-amber-800 text-xs flex items-center space-x-2">
+            <i class="fa-solid fa-circle-nodes animate-pulse text-amber-500"></i>
             <span><strong>ローカルデモモードで動作中:</strong> データベース未接続。登録データや日記はブラウザにのみ保存されます。</span>
         </div>
 
         <!-- Alerts & Notifications -->
-        <div id="toast-container" class="hidden p-4 rounded-2xl text-sm font-bold border-3 border-forest-brown flex items-center justify-between shadow-[4px_4px_0px_0px_#5C4033] transition-all duration-300">
+        <div id="toast-container" class="hidden mb-4 p-4 rounded-xl text-sm font-medium flex items-center justify-between shadow-sm transition-all duration-300">
             <span id="toast-message"></span>
-            <button onclick="hideToast()" class="text-lg font-black">&times;</button>
+            <button onclick="hideToast()" class="text-lg">&times;</button>
         </div>
 
         <!-- 1. USER SELECT BAR (CRITICAL PRIVACY GATEWAY) -->
-        <div class="toy-card p-5 space-y-3.5 bg-white">
+        <div class="bg-white rounded-2xl border border-slate-100 p-4 mb-4 shadow-sm space-y-3">
             <div>
-                <label class="block text-xs font-bold text-forest-brown uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                    <span>現在の選択ユーザー</span>
-                </label>
-                <div class="relative">
-                    <select id="user-select" class="w-full bg-forest-light border-3 border-forest-brown rounded-2xl px-4 py-3 text-base font-bold text-forest-brown focus:outline-none focus:ring-4 focus:ring-forest-green/20 focus:bg-white transition appearance-none">
-                        <option value="" disabled selected>名前を選択してください</option>
-                    </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-forest-brown">
-                        <i class="fa-solid fa-chevron-down"></i>
-                    </div>
-                </div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">現在の選択ユーザー</label>
+                <select id="user-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition">
+                    <option value="" disabled selected>名前を選択してください</option>
+                </select>
             </div>
 
             <!-- Passcode Modal/Verification Form -->
-            <div id="passcode-verification-box" class="hidden border-t-3 border-dashed border-forest-brown/30 pt-4 mt-2 space-y-3">
-                <div class="bg-forest-light border-3 border-forest-brown rounded-2xl p-4 flex items-start space-x-3 shadow-[2px_2px_0px_0px_#5C4033]">
-                    <span class="text-xl text-forest-green mt-0.5"><i class="fa-solid fa-key"></i></span>
-                    <div class="text-xs font-bold leading-relaxed">
-                        <p class="text-forest-green text-sm font-black">プライバシーロックが有効です</p>
-                        <p class="mt-1 text-forest-brown/80">このユーザーの日記にアクセスするには、登録された4桁のパスコードを入力してください。一度ログインすると、同じブラウザを使用している間はスキップされます。</p>
+            <div id="passcode-verification-box" class="hidden border-t border-slate-100 pt-3 mt-2 space-y-3">
+                <div class="bg-emerald-50/50 border border-emerald-100 rounded-xl p-3 flex items-start space-x-2">
+                    <i class="fa-solid fa-key text-emerald-600 mt-0.5"></i>
+                    <div class="text-xs text-emerald-800">
+                        <p class="font-bold">プライバシーロックが有効です</p>
+                        <p class="mt-0.5">このユーザーの日記にアクセスするには、登録された4桁のパスコードを入力してください。一度ログインすると、同じブラウザを使用している間はスキップされます。</p>
                     </div>
                 </div>
                 <div class="flex items-center space-x-2">
                     <div class="relative flex-grow">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-forest-brown/70">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
                             <i class="fa-solid fa-lock"></i>
                         </span>
-                        <input type="password" id="user-passcode-input" maxlength="4" placeholder="4桁のパスコードを入力" class="w-full bg-forest-light border-3 border-forest-brown rounded-2xl pl-10 pr-4 py-3 text-base font-bold text-forest-brown placeholder-forest-brown/40 focus:outline-none focus:ring-4 focus:ring-forest-green/20 focus:bg-white transition tracking-widest text-center">
+                        <input type="password" id="user-passcode-input" maxlength="4" placeholder="4桁のパスコードを入力" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition tracking-widest">
                     </div>
-                    <button id="verify-passcode-btn" class="toy-btn-submit font-bold text-sm px-6 py-3.5 shrink-0">
+                    <button id="verify-passcode-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition shrink-0">
                         認証する
                     </button>
                 </div>
@@ -188,60 +97,53 @@
         <!-- 2. USER MODE VIEW -->
         <div id="user-view" class="space-y-6">
             <!-- Normal User Navigation -->
-            <div class="grid grid-cols-2 gap-3 p-1.5 bg-forest-soft/50 border-3 border-forest-brown rounded-2xl">
-                <button id="tab-write" class="py-3 text-base font-bold rounded-xl bg-forest-green text-white border-2 border-forest-brown shadow-[2px_2px_0px_0px_#5C4033] transition-all flex items-center justify-center space-x-2">
+            <div class="grid grid-cols-2 gap-2 p-1 bg-slate-200/60 rounded-xl">
+                <button id="tab-write" class="py-2.5 text-sm font-semibold rounded-lg bg-white text-emerald-600 shadow-sm transition flex items-center justify-center space-x-2">
                     <i class="fa-solid fa-pen-fancy"></i>
                     <span>日記を書く</span>
                 </button>
-                <button id="tab-read" class="py-3 text-base font-bold rounded-xl text-forest-brown hover:text-forest-brown/80 hover:bg-white/40 transition-all flex items-center justify-center space-x-2">
+                <button id="tab-read" class="py-2.5 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition flex items-center justify-center space-x-2">
                     <i class="fa-solid fa-calendar-day"></i>
                     <span>日記を読む</span>
                 </button>
             </div>
 
             <!-- BLOCKER FOR UNVERIFIED USERS -->
-            <div id="unverified-blocker" class="toy-card p-8 text-center text-forest-brown/60 bg-white space-y-4">
-                <div class="w-20 h-20 bg-forest-light border-3 border-forest-brown rounded-full flex items-center justify-center mx-auto text-3xl shadow-[2px_2px_0px_0px_#5C4033]">
-                    <i class="fa-solid fa-user-shield text-forest-brown"></i>
+            <div id="unverified-blocker" class="bg-white rounded-2xl border border-slate-100 p-8 text-center text-slate-500 space-y-3">
+                <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto text-2xl">
+                    <i class="fa-solid fa-user-shield"></i>
                 </div>
-                <h3 class="font-extrabold text-forest-brown text-xl">セキュリティ・認証が必要です</h3>
-                <p class="text-xs font-bold text-forest-brown/70 max-w-sm mx-auto leading-relaxed">
+                <h3 class="font-bold text-slate-800 text-lg">セキュリティ・認証が必要です</h3>
+                <p class="text-xs text-slate-400 max-w-sm mx-auto">
                     日記の記入および閲覧を開始するには、上部のプルダウンからご自身の名前を選択し、4桁のパスコードで認証を行ってください。
                 </p>
             </div>
 
             <!-- SUB-VIEW: WRITE DIARY (Verified Only) -->
-            <section id="write-section" class="hidden toy-card p-5 md:p-6 bg-white space-y-6 relative overflow-hidden">
-                <!-- Cute leaf decoration -->
-                <div class="absolute -top-3 -right-3 text-forest-green text-4xl opacity-30 pointer-events-none transform rotate-12">
-                    <i class="fa-solid fa-seedling"></i>
-                </div>
-
-                <div class="border-b-3 border-dashed border-forest-brown/20 pb-4">
-                    <h2 class="text-xl font-extrabold text-forest-brown flex items-center gap-1.5">今日の日記をシェアしよう</h2>
-                    <p class="text-xs font-semibold text-forest-brown/60 mt-1">学習言語で書いて、みんなと学びを共有しましょう。</p>
+            <section id="write-section" class="hidden bg-white rounded-2xl border border-slate-100 p-5 md:p-6 shadow-sm space-y-6">
+                <div class="border-b border-slate-100 pb-4">
+                    <h2 class="text-xl font-bold text-slate-900">今日の日記をシェアしよう</h2>
+                    <p class="text-sm text-slate-500 mt-1">学習言語で書いて、みんなと学びを共有しましょう。</p>
                 </div>
 
                 <form id="diary-form" class="space-y-5">
                     <!-- Date Selection -->
                     <div>
-                        <label class="block text-xs font-bold text-forest-brown uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                            <span>📅 日記の日付</span>
-                        </label>
-                        <input type="date" id="diary-date" required class="w-full bg-forest-light border-3 border-forest-brown rounded-2xl px-4 py-3 text-base font-bold text-forest-brown focus:outline-none focus:ring-4 focus:ring-forest-green/20 focus:bg-white transition">
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">日記の日付</label>
+                        <input type="date" id="diary-date" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition">
                     </div>
 
                     <!-- Submission Type Selection -->
                     <div>
-                        <label class="block text-xs font-bold text-forest-brown uppercase tracking-wider mb-1.5">🎒 提出方法</label>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">提出方法</label>
                         <div class="grid grid-cols-2 gap-3">
-                            <label class="border-3 border-forest-green bg-[#EDF7ED] rounded-2xl p-3 flex items-center justify-center space-x-2 cursor-pointer transition-all hover:bg-forest-light" id="type-text-label">
-                                <input type="radio" name="submission-type" value="text" checked class="text-forest-green focus:ring-forest-green">
-                                <span class="text-sm font-black text-forest-brown">キーボード入力</span>
+                            <label class="border-2 border-emerald-600 bg-emerald-50/50 rounded-xl p-3 flex items-center justify-center space-x-2 cursor-pointer transition hover:bg-emerald-50" id="type-text-label">
+                                <input type="radio" name="submission-type" value="text" checked class="text-emerald-600 focus:ring-emerald-500">
+                                <span class="text-sm font-semibold text-slate-800">キーボード入力</span>
                             </label>
-                            <label class="border-3 border-forest-soft rounded-2xl p-3 flex items-center justify-center space-x-2 cursor-pointer transition-all hover:bg-forest-light" id="type-image-label">
-                                <input type="radio" name="submission-type" value="image" class="text-forest-green focus:ring-forest-green">
-                                <span class="text-sm font-black text-forest-brown">画像をアップロード</span>
+                            <label class="border-2 border-slate-200 rounded-xl p-3 flex items-center justify-center space-x-2 cursor-pointer transition hover:bg-slate-50" id="type-image-label">
+                                <input type="radio" name="submission-type" value="image" class="text-emerald-600 focus:ring-emerald-500">
+                                <span class="text-sm font-semibold text-slate-800">画像をアップロード</span>
                             </label>
                         </div>
                     </div>
@@ -249,47 +151,62 @@
                     <!-- Input Fields based on Type -->
                     <div id="input-text-container" class="space-y-4">
                         <div>
-                            <label class="block text-xs font-bold text-forest-brown uppercase tracking-wider mb-1.5">✏️ 日記本文 (外国語)</label>
-                            <textarea id="diary-content" rows="6" placeholder="Write your diary here in target language..." class="w-full bg-forest-light border-3 border-forest-brown rounded-2xl px-4 py-3 text-base font-bold text-forest-brown placeholder-forest-brown/30 focus:outline-none focus:ring-4 focus:ring-forest-green/20 focus:bg-white transition ruled-paper"></textarea>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">日記本文 (外国語)</label>
+                            <textarea id="diary-content" rows="6" placeholder="Write your diary here in target language..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition"></textarea>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-forest-brown uppercase tracking-wider mb-1.5">💡 日本語訳・メモ (任意)</label>
-                            <textarea id="diary-translation" rows="3" placeholder="日本語訳や、難しかった表現などのメモ..." class="w-full bg-forest-light border-3 border-forest-brown rounded-2xl px-4 py-3 text-base font-bold text-forest-brown placeholder-forest-brown/30 focus:outline-none focus:ring-4 focus:ring-forest-green/20 focus:bg-white transition"></textarea>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">日本語訳・メモ (任意)</label>
+                            <textarea id="diary-translation" rows="3" placeholder="日本語訳や、難しかった表現などのメモ..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition"></textarea>
                         </div>
                     </div>
 
                     <div id="input-image-container" class="hidden space-y-4">
-                        <div class="border-3 border-dashed border-forest-soft rounded-3xl p-6 text-center hover:border-forest-green transition-all bg-forest-light cursor-pointer relative" id="drop-zone">
+                        <div class="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center hover:border-emerald-500 transition cursor-pointer relative" id="drop-zone">
                             <input type="file" id="diary-image-file" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                             <div class="space-y-2">
-                                <i class="fa-solid fa-cloud-arrow-up text-4xl text-forest-green animate-pulse"></i>
-                                <p class="text-sm font-black text-forest-brown">クリック、またはここにノートの写真をドロップ</p>
-                                <p class="text-xs text-forest-brown/60">PNG, JPG, GIF (最大 5MB)</p>
+                                <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-400"></i>
+                                <p class="text-sm font-semibold text-slate-700">クリック、またはここにノートの写真をドロップ</p>
+                                <p class="text-xs text-slate-400">PNG, JPG, GIF 最大 5MB (※アップロード時に自動で超軽量化されます)</p>
                             </div>
+                        </div>
+
+                        <!-- OCR Language Selector -->
+                        <div class="flex items-center space-x-2 bg-slate-100 rounded-xl p-2.5 text-xs font-semibold text-slate-700">
+                            <i class="fa-solid fa-language text-base text-emerald-600"></i>
+                            <span>文字認識（OCR）の学習言語:</span>
+                            <select id="ocr-lang-select" class="bg-white border border-slate-200 rounded-lg px-2 py-1 text-slate-800 focus:outline-none">
+                                <option value="eng" selected>英語 (English)</option>
+                                <option value="spa">スペイン語 (Spanish)</option>
+                                <option value="fra">フランス語 (French)</option>
+                                <option value="deu">ドイツ語 (German)</option>
+                                <option value="chi_sim">中国語 簡体字 (Chinese)</option>
+                                <option value="kor">韓国語 (Korean)</option>
+                                <option value="rus">ロシア語 (Russian)</option>
+                            </select>
                         </div>
                         
                         <!-- Image Preview Box -->
-                        <div id="image-preview-box" class="hidden border-3 border-forest-brown rounded-2xl p-3 bg-forest-light flex items-center justify-between shadow-[2px_2px_0px_0px_#5C4033]">
+                        <div id="image-preview-box" class="hidden border border-slate-100 rounded-xl p-3 bg-slate-50 flex items-center justify-between">
                             <div class="flex items-center space-x-3">
-                                <img id="preview-img-tag" src="" alt="Preview" class="w-16 h-16 object-cover rounded-xl border-2 border-forest-brown">
+                                <img id="preview-img-tag" src="" alt="Preview" class="w-16 h-16 object-cover rounded-lg border border-slate-200">
                                 <div>
-                                    <p class="text-xs font-black text-forest-brown">アップロード準備完了</p>
-                                    <p class="text-[10px] text-forest-brown/60" id="preview-img-name">image.png</p>
+                                    <p class="text-xs font-bold text-slate-700">アップロード用（最適化・圧縮済み）</p>
+                                    <p class="text-xs text-slate-400" id="preview-img-name">image.png</p>
                                 </div>
                             </div>
-                            <button type="button" id="remove-img-btn" class="text-rose-500 hover:text-rose-700 text-sm font-bold bg-white border-2 border-forest-brown px-3 py-1 rounded-xl shadow-[1px_1px_0px_0px_#5C4033] active:translate-y-0.5 active:shadow-none">削除</button>
+                            <button type="button" id="remove-img-btn" class="text-rose-500 hover:text-rose-700 text-sm font-bold">削除</button>
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-forest-brown uppercase tracking-wider mb-1.5">🤖 写真のテキスト(OCR化 / 補足コメント)</label>
-                            <textarea id="diary-image-caption" rows="3" placeholder="AIによる画像読み取り結果、または補足説明が入ります。" class="w-full bg-forest-light border-3 border-forest-brown rounded-2xl px-4 py-3 text-base font-bold text-forest-brown placeholder-forest-brown/30 focus:outline-none focus:ring-4 focus:ring-forest-green/20 focus:bg-white transition"></textarea>
-                            <p class="text-[11px] text-forest-green font-bold mt-1.5"><i class="fa-solid fa-wand-magic-sparkles"></i> 写真をアップロードすると、自動的に画像内のテキストを読み取る体験デモが作動します！</p>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">写真のテキスト(自動OCR文字起こし結果 / 補足)</label>
+                            <textarea id="diary-image-caption" rows="4" placeholder="写真を読み込むと、自動的にここに外国語テキストが抽出されます。" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition"></textarea>
+                            <p class="text-xs text-emerald-600 mt-1"><i class="fa-solid fa-wand-magic-sparkles"></i> AIによる高性能文字起こし（OCR）がリアルタイムにデバイス上で実行されます！</p>
                         </div>
                     </div>
 
                     <!-- Submit Button -->
-                    <button type="submit" id="submit-diary-btn" class="w-full toy-btn-submit font-extrabold py-4 px-6 text-base transition-all duration-100 flex items-center justify-center space-x-2">
-                        <i class="fa-regular fa-paper-plane text-lg"></i>
+                    <button type="submit" id="submit-diary-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-6 rounded-xl transition duration-200 flex items-center justify-center space-x-2 shadow-md shadow-emerald-100">
+                        <i class="fa-regular fa-paper-plane"></i>
                         <span>日記を提出する</span>
                     </button>
                 </form>
@@ -299,25 +216,25 @@
             <section id="read-section" class="hidden space-y-4">
                 
                 <!-- Read Scope Sub-Tabs -->
-                <div class="flex border-b-3 border-forest-brown space-x-4 mb-4">
-                    <button id="read-subtab-yesterday" class="py-2 px-1 text-base font-extrabold border-b-4 border-forest-green text-forest-green transition flex items-center space-x-1.5">
+                <div class="flex border-b border-slate-200 space-x-6 mb-4">
+                    <button id="read-subtab-yesterday" class="py-2.5 px-1 text-sm font-bold border-b-2 border-emerald-600 text-emerald-600 transition flex items-center space-x-1.5">
                         <i class="fa-solid fa-users"></i>
                         <span>昨日のみんなの日記</span>
                     </button>
-                    <button id="read-subtab-myall" class="py-2 px-1 text-base font-bold border-b-4 border-transparent text-forest-brown/50 hover:text-forest-brown transition flex items-center space-x-1.5">
+                    <button id="read-subtab-myall" class="py-2.5 px-1 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition flex items-center space-x-1.5">
                         <i class="fa-solid fa-clock-rotate-left"></i>
                         <span>自分の過去日記 (すべて)</span>
                     </button>
                 </div>
 
                 <!-- Info Header and Refresh -->
-                <div class="bg-forest-light border-3 border-forest-brown rounded-2xl p-4 flex items-center justify-between gap-4 shadow-[2px_2px_0px_0px_#5C4033]">
+                <div class="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 flex items-center justify-between gap-4">
                     <div>
-                        <h2 class="text-sm font-black text-forest-brown" id="read-scope-title">昨日のみんなの日記を表示中</h2>
-                        <p class="text-xs text-forest-brown/60 font-bold mt-0.5" id="read-scope-subtitle">対象日: YYYY-MM-DD</p>
+                        <h2 class="text-sm font-bold text-slate-800" id="read-scope-title">昨日のみんなの日記を表示中</h2>
+                        <p class="text-xs text-slate-500 mt-0.5" id="read-scope-subtitle">対象日: YYYY-MM-DD</p>
                     </div>
                     <div>
-                        <button id="refresh-diaries" class="toy-btn-interactive font-bold px-3 py-2 text-xs flex items-center space-x-1.5">
+                        <button id="refresh-diaries" class="bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-semibold px-3 py-1.5 rounded-xl text-xs transition flex items-center space-x-1.5">
                             <i class="fa-solid fa-arrows-rotate"></i>
                             <span>再読み込み</span>
                         </button>
@@ -327,9 +244,9 @@
                 <!-- Diary Cards List -->
                 <div id="diaries-list-container" class="space-y-4">
                     <!-- Loading skeleton -->
-                    <div class="toy-card p-6 text-center text-forest-brown/60 bg-white">
-                        <i class="fa-solid fa-spinner animate-spin text-2xl text-forest-green mb-2"></i>
-                        <p class="text-sm font-bold">日記を読み込んでいます...</p>
+                    <div class="bg-white rounded-2xl border border-slate-100 p-6 text-center text-slate-500">
+                        <i class="fa-solid fa-spinner animate-spin text-2xl text-emerald-600 mb-2"></i>
+                        <p class="text-sm">日記を読み込んでいます...</p>
                     </div>
                 </div>
             </section>
@@ -338,22 +255,22 @@
 
         <!-- 3. ADMIN MODE VIEW -->
         <div id="admin-view" class="hidden space-y-6">
-            <div class="flex items-center justify-between border-b-3 border-forest-brown pb-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div>
-                    <h2 class="text-xl font-extrabold text-forest-brown">管理者ダッシュボード</h2>
-                    <p class="text-xs font-semibold text-forest-brown/60">ユーザー設定、および投稿された日記の管理・検閲ができます。</p>
+                    <h2 class="text-xl font-bold text-slate-900">管理者ダッシュボード</h2>
+                    <p class="text-sm text-slate-500">ユーザー設定、および投稿された日記の管理・検閲ができます。</p>
                 </div>
-                <button id="exit-admin-btn" class="toy-btn-interactive text-xs font-bold px-3 py-2 flex items-center space-x-1">
-                    <i class="fa-solid fa-circle-xmark"></i> <span>閉じる</span>
+                <button id="exit-admin-btn" class="text-xs font-semibold px-3 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-800 transition">
+                    <i class="fa-solid fa-circle-xmark"></i> 閉じる
                 </button>
             </div>
 
             <!-- Admin Area Tabs -->
-            <div class="flex border-b-3 border-forest-brown space-x-4">
-                <button id="admin-tab-users" class="py-2 px-1 text-sm font-black border-b-4 border-forest-green text-forest-green transition">
+            <div class="flex border-b border-slate-200 space-x-4">
+                <button id="admin-tab-users" class="py-2.5 px-1 text-sm font-bold border-b-2 border-emerald-600 text-emerald-600 transition">
                     ユーザー(名簿)管理
                 </button>
-                <button id="admin-tab-moderation" class="py-2 px-1 text-sm font-bold border-b-4 border-transparent text-forest-brown/50 hover:text-forest-brown transition">
+                <button id="admin-tab-moderation" class="py-2.5 px-1 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition">
                     投稿検閲 (削除/非表示)
                 </button>
             </div>
@@ -361,65 +278,65 @@
             <!-- ADMIN SUB-VIEW: USER MANAGEMENT -->
             <section id="admin-users-section" class="space-y-6">
                 <!-- Change Admin Password Section -->
-                <div class="bg-[#FFF9E6] border-3 border-forest-brown rounded-2xl p-5 shadow-[4px_4px_0px_0px_#5C4033] space-y-3">
+                <div class="bg-amber-50/50 border border-amber-200 rounded-2xl p-5 shadow-sm space-y-3">
                     <div class="flex items-center space-x-2">
-                        <i class="fa-solid fa-key text-forest-clay text-lg"></i>
-                        <h4 class="font-black text-forest-brown text-sm">管理者ログインパスワードの設定</h4>
+                        <i class="fa-solid fa-key text-amber-600"></i>
+                        <h4 class="font-bold text-slate-900 text-sm">管理者ログインパスワードの設定</h4>
                     </div>
-                    <p class="text-xs font-bold text-forest-brown/80 leading-relaxed">
+                    <p class="text-xs text-slate-600">
                         一般の生徒が管理者画面に入り込むのを防ぐため、独自の管理者用パスワードを設定・更新してください。
                     </p>
                     <div class="flex flex-col sm:flex-row gap-2 max-w-lg">
-                        <input type="password" id="admin-new-password-input" placeholder="新しい管理者パスワードを入力" class="flex-grow bg-white border-3 border-forest-brown rounded-2xl px-4 py-2 text-sm font-bold text-forest-brown focus:outline-none focus:ring-4 focus:ring-forest-green/20">
-                        <button id="save-admin-password-btn" class="toy-btn-submit font-bold text-xs px-4 py-3">
+                        <input type="password" id="admin-new-password-input" placeholder="新しい管理者パスワードを入力" class="flex-grow bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 transition">
+                        <button id="save-admin-password-btn" class="bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition">
                             パスワード変更
                         </button>
                     </div>
                 </div>
 
-                <div class="toy-card p-5 md:p-6 bg-white space-y-4">
+                <div class="bg-white rounded-2xl border border-slate-100 p-5 md:p-6 shadow-sm space-y-4">
                     <div>
-                        <h3 class="font-extrabold text-forest-brown">ユーザー登録</h3>
-                        <p class="text-xs font-semibold text-forest-brown/60 mt-0.5">「名前, パスコード」の形式で改行区切りで直接入力してください。</p>
+                        <h3 class="font-bold text-slate-900">ユーザー登録</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">「名前, パスコード」の形式で改行区切りで直接入力してください。</p>
                     </div>
 
                     <div class="space-y-2">
-                        <label class="block text-xs font-bold text-forest-brown uppercase tracking-wider">ユーザー名とパスコード一覧 (1行に「名前, パスコード」)</label>
-                        <textarea id="admin-user-bulk" rows="6" placeholder="山田 太郎, 1234&#10;佐藤 花子, 5678" class="w-full bg-forest-light border-3 border-forest-brown rounded-2xl px-4 py-3 text-base font-bold text-forest-brown placeholder-forest-brown/30 focus:outline-none focus:ring-4 focus:ring-forest-green/20"></textarea>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">ユーザー名とパスコード一覧 (1行に「名前, パスコード」)</label>
+                        <textarea id="admin-user-bulk" rows="6" placeholder="山田 太郎, 1234&#10;佐藤 花子, 5678&#10;John Doe, 9999" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition"></textarea>
                     </div>
 
                     <div class="flex space-x-3">
-                        <button id="save-users-btn" class="flex-1 toy-btn-submit font-extrabold py-3 px-6 flex items-center justify-center space-x-2">
+                        <button id="save-users-btn" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-xl transition flex items-center justify-center space-x-2">
                             <i class="fa-regular fa-floppy-disk"></i>
                             <span>ユーザー名簿を保存・更新</span>
                         </button>
-                        <button id="clear-users-btn" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border-3 border-forest-brown font-extrabold px-4 rounded-2xl text-xs shadow-[2px_2px_0px_0px_#5C4033] active:translate-y-0.5 active:shadow-none transition-all">
+                        <button id="clear-users-btn" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-100 font-bold px-4 rounded-xl text-xs transition">
                             クリア
                         </button>
                     </div>
                 </div>
 
                 <!-- Current Class Stats -->
-                <div class="toy-card p-5 md:p-6 bg-white space-y-4">
-                    <h3 class="font-extrabold text-forest-brown">現在の登録ユーザー・暗証番号一覧</h3>
+                <div class="bg-white rounded-2xl border border-slate-100 p-5 md:p-6 shadow-sm space-y-4">
+                    <h3 class="font-bold text-slate-900">現在の登録ユーザー・暗証番号一覧</h3>
                     <div id="admin-user-chips-container" class="flex flex-wrap gap-2">
-                        <span class="text-forest-brown/60 text-sm italic">登録されているユーザーがいません。</span>
+                        <span class="text-slate-500 text-sm italic">登録されているユーザーがいません。</span>
                     </div>
                 </div>
             </section>
 
             <!-- ADMIN SUB-VIEW: DIARY MODERATION -->
             <section id="admin-moderation-section" class="hidden space-y-4">
-                <div class="bg-amber-50 border-3 border-forest-brown rounded-2xl p-4 flex items-start space-x-3 text-amber-900 shadow-[2px_2px_0px_0px_#5C4033]">
+                <div class="bg-amber-50 border border-amber-100 rounded-xl p-4 flex items-start space-x-3 text-amber-800">
                     <i class="fa-solid fa-triangle-exclamation text-lg mt-0.5"></i>
-                    <div class="text-xs font-bold leading-relaxed">
-                        <p class="font-black text-sm text-forest-clay">管理者権限</p>
+                    <div class="text-xs">
+                        <p class="font-bold">管理者権限</p>
                         <p class="mt-0.5">不適切な投稿がある場合、「非公開」に変更して一般ユーザーの閲覧制限をかける、または「永久削除」することが可能です。</p>
                     </div>
                 </div>
 
                 <div id="admin-diaries-moderation-list" class="space-y-3">
-                    <p class="text-forest-brown/60 text-sm italic text-center py-8">データを探しています...</p>
+                    <p class="text-slate-500 text-sm italic text-center py-8">読み込み中...</p>
                 </div>
             </section>
         </div>
@@ -427,28 +344,28 @@
     </main>
 
     <!-- CUSTOM DIALOGS / MODALS -->
-    <!-- 1. Admin Password Auth Modal -->
-    <div id="admin-auth-modal" class="hidden fixed inset-0 bg-[#5C4033]/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl border-3 border-forest-brown p-6 max-w-sm w-full shadow-[6px_6px_0px_0px_#5C4033] space-y-4">
+    <!-- 1. Admin Password Auth Modal (STRICT & SECURE) -->
+    <div id="admin-auth-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl border border-slate-100 p-6 max-w-sm w-full shadow-2xl space-y-4">
             <div class="flex items-center space-x-3">
-                <div class="bg-forest-soft text-forest-brown p-2.5 rounded-2xl border-2 border-forest-brown shadow-[2px_2px_0px_0px_#5C4033]">
+                <div class="bg-amber-100 text-amber-600 p-2.5 rounded-xl">
                     <i class="fa-solid fa-shield-halved text-lg"></i>
                 </div>
                 <div>
-                    <h3 class="font-extrabold text-forest-brown text-base">管理者認証</h3>
-                    <p class="text-xs font-bold text-forest-brown/60">ダッシュボードに入るためのパスワードを入力してください。</p>
+                    <h3 class="font-bold text-slate-900 text-base">管理者認証</h3>
+                    <p class="text-xs text-slate-500">ダッシュボードに入るためのパスワードを入力してください。</p>
                 </div>
             </div>
             <div class="space-y-2">
-                <label class="block text-[11px] font-bold text-forest-brown/70" id="admin-pass-input-label">管理者パスワード (※初期設定時は自由な文字でログイン可)</label>
-                <input type="password" id="admin-secret-input" placeholder="パスワードを入力..." class="w-full bg-forest-light border-3 border-forest-brown rounded-2xl px-4 py-2.5 text-sm font-bold text-forest-brown placeholder-forest-brown/30 focus:outline-none focus:ring-4 focus:ring-forest-green/20">
-                <p id="admin-auth-error-msg" class="text-rose-500 text-xs font-bold hidden">※正しい管理者パスワードを入力してください。</p>
+                <label class="block text-xs font-semibold text-slate-600" id="admin-pass-input-label">管理者パスワード (※初期設定時は自由な文字でログイン可)</label>
+                <input type="password" id="admin-secret-input" placeholder="パスワードを入力..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white transition">
+                <p id="admin-auth-error-msg" class="text-rose-500 text-xs font-semibold hidden">※正しい管理者パスワードを入力してください。</p>
             </div>
             <div class="flex space-x-2 pt-2">
-                <button id="cancel-admin-auth-btn" class="flex-1 bg-forest-soft hover:bg-forest-soft/85 border-2 border-forest-brown font-bold py-2.5 px-4 rounded-xl text-sm text-forest-brown shadow-[2px_2px_0px_0px_#5C4033] active:translate-y-0.5 active:shadow-none">
+                <button id="cancel-admin-auth-btn" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-2.5 px-4 rounded-xl text-sm transition">
                     キャンセル
                 </button>
-                <button id="confirm-admin-auth-btn" class="flex-1 bg-forest-green hover:bg-forest-greenDark text-white font-bold py-2.5 px-4 rounded-xl text-sm border-2 border-forest-brown shadow-[2px_2px_0px_0px_#5C4033] active:translate-y-0.5 active:shadow-none">
+                <button id="confirm-admin-auth-btn" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition">
                     ログイン
                 </button>
             </div>
@@ -456,22 +373,22 @@
     </div>
 
     <!-- 2. Delete Confirmation Modal -->
-    <div id="delete-confirm-modal" class="hidden fixed inset-0 bg-[#5C4033]/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl border-3 border-forest-brown p-6 max-w-sm w-full shadow-[6px_6px_0px_0px_#5C4033] space-y-4">
+    <div id="delete-confirm-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl border border-slate-100 p-6 max-w-sm w-full shadow-2xl space-y-4">
             <div class="flex items-center space-x-3">
-                <div class="bg-rose-100 text-rose-600 p-2.5 rounded-2xl border-2 border-forest-brown shadow-[2px_2px_0px_0px_#5C4033]">
+                <div class="bg-rose-100 text-rose-600 p-2.5 rounded-xl">
                     <i class="fa-regular fa-trash-can text-lg"></i>
                 </div>
                 <div>
-                    <h3 class="font-extrabold text-forest-brown text-base">投稿を完全に削除しますか？</h3>
-                    <p class="text-xs font-bold text-forest-brown/60">この操作はやり直すことができません。</p>
+                    <h3 class="font-bold text-slate-900 text-base">投稿を完全に削除しますか？</h3>
+                    <p class="text-xs text-slate-500">この操作はやり直すことができません。</p>
                 </div>
             </div>
             <div class="flex space-x-2 pt-2">
-                <button id="cancel-delete-btn" class="flex-1 bg-forest-soft hover:bg-forest-soft/85 border-2 border-forest-brown font-bold py-2.5 px-4 rounded-xl text-sm text-forest-brown shadow-[2px_2px_0px_0px_#5C4033] active:translate-y-0.5 active:shadow-none">
+                <button id="cancel-delete-btn" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-2.5 px-4 rounded-xl text-sm transition">
                     いいえ、残す
                 </button>
-                <button id="confirm-delete-btn" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 px-4 rounded-xl text-sm border-2 border-forest-brown shadow-[2px_2px_0px_0px_#5C4033] active:translate-y-0.5 active:shadow-none">
+                <button id="confirm-delete-btn" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition">
                     削除する
                 </button>
             </div>
@@ -479,10 +396,10 @@
     </div>
 
     <!-- Footer -->
-    <footer class="bg-white border-t-3 border-forest-brown py-6 mt-12">
-        <div class="max-w-4xl mx-auto px-4 text-center text-xs font-bold text-forest-brown/50 space-y-2">
+    <footer class="bg-white border-t border-slate-100 py-6 mt-12">
+        <div class="max-w-4xl mx-auto px-4 text-center text-xs text-slate-400 space-y-2">
             <p>© 2026 Dnevnikki. All rights reserved.</p>
-            <p>※クラス識別: URL末尾のハッシュ（例: <code>#eng_beginner</code>）で別クラスの名簿・日記を管理できます。</p>
+            <p>※クラス識別: URL末尾 of hash（例: <code>#eng_beginner</code>）で別クラスの名簿・日記を管理できます。</p>
         </div>
     </footer>
 
@@ -502,12 +419,13 @@ const firebaseConfig = {
   measurementId: "G-J0W145BBB6"
 };
 
+
         let db;
         let auth;
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'lingo-diary-v1';
         const classId = getClassId();
 
-        document.getElementById('class-indicator').innerHTML = `クラス: <strong class="text-forest-greenDark">${classId}</strong>`;
+        document.getElementById('class-indicator').innerHTML = `<i class="fa-solid fa-graduation-cap"></i> クラス: <strong class="text-emerald-600">${classId}</strong>`;
 
         if (!firebaseConfig.apiKey) {
             isMockMode = true;
@@ -572,14 +490,14 @@ const firebaseConfig = {
             const msgSpan = document.getElementById('toast-message');
             
             msgSpan.innerText = message;
-            container.className = `p-4 rounded-2xl text-sm font-bold border-3 border-forest-brown flex items-center justify-between shadow-[4px_4px_0px_0px_#5C4033] mb-4 `;
+            container.className = `p-4 rounded-xl text-sm font-medium flex items-center justify-between shadow-sm transition-all duration-300 mb-4 `;
             
             if (type === 'success') {
-                container.classList.add('bg-emerald-100', 'text-emerald-900');
+                container.classList.add('bg-emerald-50', 'border', 'border-emerald-100', 'text-emerald-800');
             } else if (type === 'error') {
-                container.classList.add('bg-rose-100', 'text-rose-900');
+                container.classList.add('bg-rose-50', 'border', 'border-rose-100', 'text-rose-800');
             } else {
-                container.classList.add('bg-amber-100', 'text-amber-900');
+                container.classList.add('bg-amber-50', 'border', 'border-amber-100', 'text-amber-800');
             }
             
             container.classList.remove('hidden');
@@ -639,7 +557,7 @@ const firebaseConfig = {
                 readSection.classList.add('hidden');
             } else {
                 unverifiedBlocker.classList.add('hidden');
-                if (tabWrite.classList.contains('bg-forest-green')) {
+                if (tabWrite.classList.contains('text-emerald-600')) {
                     writeSection.classList.remove('hidden');
                     readSection.classList.add('hidden');
                 } else {
@@ -651,14 +569,14 @@ const firebaseConfig = {
         }
 
         tabWrite.addEventListener('click', () => {
-            tabWrite.className = "py-3 text-base font-bold rounded-xl bg-forest-green text-white border-2 border-forest-brown shadow-[2px_2px_0px_0px_#5C4033] transition-all flex items-center justify-center space-x-2";
-            tabRead.className = "py-3 text-base font-bold rounded-xl text-forest-brown hover:text-forest-brown/80 hover:bg-white/40 transition-all flex items-center justify-center space-x-2";
+            tabWrite.className = "py-2.5 text-sm font-semibold rounded-lg bg-white text-emerald-600 shadow-sm transition flex items-center justify-center space-x-2";
+            tabRead.className = "py-2.5 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition flex items-center justify-center space-x-2";
             updateScreenVisibility();
         });
 
         tabRead.addEventListener('click', () => {
-            tabRead.className = "py-3 text-base font-bold rounded-xl bg-forest-green text-white border-2 border-forest-brown shadow-[2px_2px_0px_0px_#5C4033] transition-all flex items-center justify-center space-x-2";
-            tabWrite.className = "py-3 text-base font-bold rounded-xl text-forest-brown hover:text-forest-brown/80 hover:bg-white/40 transition-all flex items-center justify-center space-x-2";
+            tabRead.className = "py-2.5 text-sm font-semibold rounded-lg bg-white text-emerald-600 shadow-sm transition flex items-center justify-center space-x-2";
+            tabWrite.className = "py-2.5 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition flex items-center justify-center space-x-2";
             updateScreenVisibility();
         });
 
@@ -668,15 +586,15 @@ const firebaseConfig = {
 
         subtabYesterday.addEventListener('click', () => {
             activeReadScope = 'yesterday';
-            subtabYesterday.className = "py-2 px-1 text-base font-extrabold border-b-4 border-forest-green text-forest-green transition flex items-center space-x-1.5";
-            subtabMyAll.className = "py-2 px-1 text-base font-bold border-b-4 border-transparent text-forest-brown/50 hover:text-forest-brown transition flex items-center space-x-1.5";
+            subtabYesterday.className = "py-2.5 px-1 text-sm font-bold border-b-2 border-emerald-600 text-emerald-600 transition flex items-center space-x-1.5";
+            subtabMyAll.className = "py-2.5 px-1 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition flex items-center space-x-1.5";
             loadDiariesByActiveScope();
         });
 
         subtabMyAll.addEventListener('click', () => {
             activeReadScope = 'myall';
-            subtabMyAll.className = "py-2 px-1 text-base font-extrabold border-b-4 border-forest-green text-forest-green transition flex items-center space-x-1.5";
-            subtabYesterday.className = "py-2 px-1 text-base font-bold border-b-4 border-transparent text-forest-brown/50 hover:text-forest-brown transition flex items-center space-x-1.5";
+            subtabMyAll.className = "py-2.5 px-1 text-sm font-bold border-b-2 border-emerald-600 text-emerald-600 transition flex items-center space-x-1.5";
+            subtabYesterday.className = "py-2.5 px-1 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition flex items-center space-x-1.5";
             loadDiariesByActiveScope();
         });
 
@@ -734,20 +652,20 @@ const firebaseConfig = {
         const inputImageContainer = document.getElementById('input-image-container');
 
         typeTextRadio.addEventListener('change', () => {
-            typeTextLabel.className = "border-3 border-forest-green bg-[#EDF7ED] rounded-2xl p-3 flex items-center justify-center space-x-2 cursor-pointer transition-all hover:bg-forest-light";
-            typeImageLabel.className = "border-3 border-forest-soft rounded-2xl p-3 flex items-center justify-center space-x-2 cursor-pointer transition-all hover:bg-forest-light";
+            typeTextLabel.className = "border-2 border-emerald-600 bg-emerald-50/50 rounded-xl p-3 flex items-center justify-center space-x-2 cursor-pointer transition hover:bg-emerald-50";
+            typeImageLabel.className = "border-2 border-slate-200 rounded-xl p-3 flex items-center justify-center space-x-2 cursor-pointer transition hover:bg-slate-50";
             inputTextContainer.classList.remove('hidden');
             inputImageContainer.classList.add('hidden');
         });
 
         typeImageRadio.addEventListener('change', () => {
-            typeImageLabel.className = "border-3 border-forest-green bg-[#EDF7ED] rounded-2xl p-3 flex items-center justify-center space-x-2 cursor-pointer transition-all hover:bg-forest-light";
-            typeTextLabel.className = "border-3 border-forest-soft rounded-2xl p-3 flex items-center justify-center space-x-2 cursor-pointer transition-all hover:bg-forest-light";
+            typeImageLabel.className = "border-2 border-emerald-600 bg-emerald-50/50 rounded-xl p-3 flex items-center justify-center space-x-2 cursor-pointer transition hover:bg-emerald-50";
+            typeTextLabel.className = "border-2 border-slate-200 rounded-xl p-3 flex items-center justify-center space-x-2 cursor-pointer transition hover:bg-slate-50";
             inputImageContainer.classList.remove('hidden');
             inputTextContainer.classList.add('hidden');
         });
 
-        // --- IMAGE HANDLING AND MOCK OCR ---
+        // --- IMAGE HANDLING, COMPRESSION & OCR ---
         const fileInput = document.getElementById('diary-image-file');
         const dropZone = document.getElementById('drop-zone');
         const imagePreviewBox = document.getElementById('image-preview-box');
@@ -761,46 +679,117 @@ const firebaseConfig = {
 
         dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
-            dropZone.classList.add('border-forest-green', 'bg-[#FAF6F0]');
+            dropZone.classList.add('border-emerald-500', 'bg-emerald-50/10');
         });
         dropZone.addEventListener('dragleave', () => {
-            dropZone.classList.remove('border-forest-green', 'bg-[#FAF6F0]');
+            dropZone.classList.remove('border-emerald-500', 'bg-emerald-50/10');
         });
         dropZone.addEventListener('drop', (e) => {
             e.preventDefault();
-            dropZone.classList.remove('border-forest-green', 'bg-[#FAF6F0]');
+            dropZone.classList.remove('border-emerald-500', 'bg-emerald-50/10');
             if (e.dataTransfer.files.length > 0) {
                 fileInput.files = e.dataTransfer.files;
                 handleFileSelect();
             }
         });
 
-        function handleFileSelect() {
+        // Compression function to make base64 images fit in Firestore Document (1MB Limit)
+        function compressImage(base64Str, maxWidth = 800, maxHeight = 800, quality = 0.6) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.src = base64Str;
+                img.onload = function() {
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > maxWidth || height > maxHeight) {
+                        if (width > height) {
+                            height = Math.round((height * maxWidth) / width);
+                            width = maxWidth;
+                        } else {
+                            width = Math.round((width * maxHeight) / height);
+                            height = maxHeight;
+                        }
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Compress to JPG with a quality factor
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                    resolve(compressedDataUrl);
+                };
+                img.onerror = function(err) {
+                    reject(err);
+                };
+            });
+        }
+
+        async function handleFileSelect() {
             const file = fileInput.files[0];
             if (!file) return;
-
-            if (file.size > 5 * 1024 * 1024) {
-                showToast("画像サイズは5MB以下にしてください。", "error");
-                fileInput.value = "";
-                return;
-            }
 
             previewImgName.innerText = file.name;
 
             const reader = new FileReader();
-            reader.onload = function(e) {
-                selectedBase64Image = e.target.result;
-                previewImgTag.src = selectedBase64Image;
-                imagePreviewBox.classList.remove('hidden');
-                
-                diaryImageCaption.value = "読み込み中...";
-                setTimeout(() => {
-                    diaryImageCaption.value = `[OCRによる手書き文字起こし] Today was an amazing day! I studied French for two hours in the library and drank green tea. 🍵`;
-                    showToast("画像のテキスト解析（疑似OCR）に成功しました！");
-                }, 1000);
+            reader.onload = async function(e) {
+                const rawBase64 = e.target.result;
+                diaryImageCaption.value = "画像を圧縮・最適化中...";
+
+                try {
+                    // Compress to ensure it stays well below Firestore 1MB document limit
+                    selectedBase64Image = await compressImage(rawBase64);
+                    previewImgTag.src = selectedBase64Image;
+                    imagePreviewBox.classList.remove('hidden');
+                    
+                    // Run OCR immediately
+                    runOCR(selectedBase64Image);
+                } catch (err) {
+                    console.error("Compression error:", err);
+                    showToast("画像の圧縮処理に失敗しました。", "error");
+                    diaryImageCaption.value = "";
+                }
             };
             reader.readAsDataURL(file);
         }
+
+        function runOCR(base64Image) {
+            diaryImageCaption.value = "画像内の文字を解析中... ⏳\n(※初回起動時はAI言語データのダウンロードに10〜20秒かかる場合があります。しばらくお待ちください)";
+            
+            if (typeof Tesseract === 'undefined') {
+                diaryImageCaption.value = "エラー: OCRモジュール(Tesseract)が読み込めませんでした。ネット環境を確認してページを再読み込みしてください。";
+                return;
+            }
+
+            const targetLang = document.getElementById('ocr-lang-select').value || 'eng';
+
+            Tesseract.recognize(
+                base64Image,
+                targetLang
+            ).then(({ data: { text } }) => {
+                if (text && text.trim().length > 0) {
+                    diaryImageCaption.value = text.trim();
+                    showToast("画像の文字起こし（OCR）に成功しました！✨");
+                } else {
+                    diaryImageCaption.value = "画像からテキストを検出できませんでした。手動で入力してください。";
+                    showToast("文字が検出されませんでした。", "info");
+                }
+            }).catch(err => {
+                console.error("OCR API error:", err);
+                diaryImageCaption.value = "文字認識（OCR）に失敗しました。手動でご記入ください。";
+                showToast("文字解析に失敗しました。", "error");
+            });
+        }
+
+        // Re-run OCR if user changes target language dropdown
+        document.getElementById('ocr-lang-select').addEventListener('change', () => {
+            if (selectedBase64Image) {
+                runOCR(selectedBase64Image);
+            }
+        });
 
         removeImgBtn.addEventListener('click', () => {
             fileInput.value = "";
@@ -847,8 +836,8 @@ const firebaseConfig = {
                             userSelect.appendChild(opt);
 
                             const chip = document.createElement('span');
-                            chip.className = "bg-forest-light border-2 border-forest-brown text-forest-brown text-xs font-bold px-3 py-1.5 rounded-xl flex items-center space-x-1.5 shadow-[1px_1px_0px_0px_#5C4033]";
-                            chip.innerHTML = `<i class="fa-solid fa-user-lock text-forest-clay"></i> <span>${name} (${code})</span>`;
+                            chip.className = "bg-slate-100 border border-slate-200 text-slate-800 text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center space-x-1.5";
+                            chip.innerHTML = `<i class="fa-solid fa-user-lock text-emerald-500"></i> <span>${name} (${code})</span>`;
                             chipsContainer.appendChild(chip);
                         }
                     }
@@ -870,7 +859,7 @@ const firebaseConfig = {
                         parseAndRenderConfig(docSnapshot.data());
                     } else {
                         userBulk.value = "";
-                        chipsContainer.innerHTML = '<span class="text-forest-brown/60 text-sm italic">名簿が未登録です。管理モードから登録してください。</span>';
+                        chipsContainer.innerHTML = '<span class="text-slate-400 text-sm italic">名簿が未登録です。管理モードから登録してください。</span>';
                     }
                 }).catch(err => {
                     console.error("Config load error:", err);
@@ -910,7 +899,7 @@ const firebaseConfig = {
                     return;
                 }
                 textData = document.getElementById('diary-image-caption').value.trim();
-                imageData = selectedBase64Image;
+                imageData = selectedBase64Image; // Compressed lightweight base64 string
             }
 
             const payload = {
@@ -947,7 +936,7 @@ const firebaseConfig = {
                 localStorage.setItem(`mock_diaries_${classId}`, JSON.stringify(mockList));
                 setTimeout(() => {
                     submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane text-lg"></i> <span>日記を提出する</span>';
+                    submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> <span>日記を提出する</span>';
                     onSaveSuccess();
                 }, 500);
             } else {
@@ -965,7 +954,7 @@ const firebaseConfig = {
                     onSaveSuccess();
                 }).finally(() => {
                     submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane text-lg"></i> <span>日記を提出する</span>';
+                    submitBtn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> <span>日記を提出する</span>';
                 });
             }
         });
@@ -989,9 +978,9 @@ const firebaseConfig = {
         function loadYesterdayDiaries() {
             const container = document.getElementById('diaries-list-container');
             container.innerHTML = `
-                <div class="toy-card p-6 text-center text-forest-brown/60 bg-white">
-                    <i class="fa-solid fa-spinner animate-spin text-2xl text-forest-green mb-2"></i>
-                    <p class="text-sm font-bold">日記を読み込んでいます...</p>
+                <div class="bg-white rounded-2xl border border-slate-100 p-6 text-center text-slate-500">
+                    <i class="fa-solid fa-spinner animate-spin text-2xl text-emerald-600 mb-2"></i>
+                    <p class="text-sm">日記を読み込んでいます...</p>
                 </div>
             `;
 
@@ -1001,9 +990,9 @@ const firebaseConfig = {
 
                 if (filtered.length === 0) {
                     container.innerHTML = `
-                        <div class="toy-card p-8 text-center text-forest-brown/60 bg-white space-y-2">
-                            <i class="fa-regular fa-calendar-times text-3xl text-forest-brown/40"></i>
-                            <p class="font-bold text-forest-brown">昨日(${yesterdayStr})の日記はまだ投稿されていません</p>
+                        <div class="bg-white rounded-2xl border border-slate-100 p-8 text-center text-slate-500 space-y-2">
+                            <i class="fa-regular fa-calendar-times text-3xl text-slate-300"></i>
+                            <p class="font-semibold text-slate-700">昨日(${yesterdayStr})の日記はまだ投稿されていません</p>
                         </div>
                     `;
                     return;
@@ -1040,9 +1029,9 @@ const firebaseConfig = {
         function loadMyAllDiaries() {
             const container = document.getElementById('diaries-list-container');
             container.innerHTML = `
-                <div class="toy-card p-6 text-center text-forest-brown/60 bg-white">
-                    <i class="fa-solid fa-spinner animate-spin text-2xl text-forest-green mb-2"></i>
-                    <p class="text-sm font-bold">あなたの過去日記を読み込んでいます...</p>
+                <div class="bg-white rounded-2xl border border-slate-100 p-6 text-center text-slate-500">
+                    <i class="fa-solid fa-spinner animate-spin text-2xl text-emerald-600 mb-2"></i>
+                    <p class="text-sm">過去の日記をすべて読み込んでいます...</p>
                 </div>
             `;
 
@@ -1052,9 +1041,9 @@ const firebaseConfig = {
 
                 if (filtered.length === 0) {
                     container.innerHTML = `
-                        <div class="toy-card p-8 text-center text-forest-brown/60 bg-white space-y-2">
-                            <i class="fa-solid fa-feather text-3xl text-forest-brown/30"></i>
-                            <p class="font-bold text-forest-brown">提出された過去日記はありません</p>
+                        <div class="bg-white rounded-2xl border border-slate-100 p-8 text-center text-slate-500 space-y-2">
+                            <i class="fa-solid fa-feather text-3xl text-slate-300"></i>
+                            <p class="font-semibold text-slate-700">提出された過去日記はありません</p>
                         </div>
                     `;
                     return;
@@ -1087,12 +1076,12 @@ const firebaseConfig = {
         function renderDiariesList(diaries, container, showStatus = false) {
             diaries.forEach(diary => {
                 const card = document.createElement('div');
-                card.className = "toy-card p-5 space-y-4 bg-white relative overflow-hidden";
+                card.className = "bg-white rounded-2xl border border-slate-100 p-5 shadow-sm space-y-4 hover:border-emerald-100 transition duration-200 relative overflow-hidden";
                 
                 let visibilityBadge = "";
                 if (showStatus && diary.isVisible === false) {
                     visibilityBadge = `
-                        <span class="absolute top-0 right-0 bg-rose-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl border-b-2 border-l-2 border-forest-brown">
+                        <span class="absolute top-0 right-0 bg-rose-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg">
                             非公開設定（管理者）
                         </span>
                     `;
@@ -1103,22 +1092,22 @@ const firebaseConfig = {
                     contentHTML = `
                         <div class="flex flex-col md:flex-row gap-4">
                             <div class="md:w-1/3">
-                                <img src="${diary.imageUrl}" class="w-full h-auto rounded-2xl border-3 border-forest-brown shadow-[2px_2px_0px_0px_#5C4033] cursor-zoom-in" onclick="openImageModal('${diary.imageUrl}')" alt="ノート日記写真">
+                                <img src="${diary.imageUrl}" class="w-full h-auto rounded-lg border border-slate-100 cursor-zoom-in" onclick="openImageModal('${diary.imageUrl}')" alt="ノート日記写真">
                             </div>
                             <div class="md:w-2/3 space-y-2">
-                                <p class="text-xs font-black text-forest-clay uppercase tracking-wider"><i class="fa-solid fa-wand-magic-sparkles"></i> 認識テキスト・メモ</p>
-                                <p class="text-forest-brown whitespace-pre-wrap font-bold bg-forest-light border-2 border-forest-brown p-3 rounded-2xl text-sm leading-relaxed">${escapeHTML(diary.content)}</p>
+                                <p class="text-xs font-bold text-emerald-600 uppercase tracking-wider"><i class="fa-solid fa-wand-magic-sparkles"></i> 認識テキスト・メモ</p>
+                                <p class="text-slate-800 whitespace-pre-wrap font-medium">${escapeHTML(diary.content)}</p>
                             </div>
                         </div>
                     `;
                 } else {
                     contentHTML = `
                         <div class="space-y-3">
-                            <p class="text-forest-brown font-extrabold text-base whitespace-pre-wrap leading-relaxed ruled-paper p-1">${escapeHTML(diary.content)}</p>
+                            <p class="text-slate-800 font-medium text-base whitespace-pre-wrap leading-relaxed">${escapeHTML(diary.content)}</p>
                             ${diary.translation ? `
-                                <div class="bg-forest-light border-l-4 border-forest-green p-3 rounded-r-2xl border-t border-b border-r border-forest-brown/20 shadow-[2px_2px_0px_0px_rgba(92,64,51,0.1)]">
-                                    <p class="text-[10px] font-black text-forest-brown/50 mb-1">日本語訳・メモ</p>
-                                    <p class="text-xs text-forest-brown font-bold whitespace-pre-wrap">${escapeHTML(diary.translation)}</p>
+                                <div class="bg-slate-50 border-l-4 border-emerald-500 p-3 rounded-r-xl">
+                                    <p class="text-xs font-bold text-slate-400 mb-1">日本語訳・メモ</p>
+                                    <p class="text-xs text-slate-600 whitespace-pre-wrap">${escapeHTML(diary.translation)}</p>
                                 </div>
                             ` : ''}
                         </div>
@@ -1127,17 +1116,17 @@ const firebaseConfig = {
 
                 card.innerHTML = `
                     ${visibilityBadge}
-                    <div class="flex items-center justify-between border-b-2 border-dashed border-forest-brown/20 pb-3">
-                        <div class="flex items-center space-x-2.5">
-                            <div class="w-9 h-9 rounded-full bg-forest-soft border-2 border-forest-brown flex items-center justify-center text-forest-brown font-black text-xs uppercase shadow-[1px_1px_0px_0px_#5C4033]">
+                    <div class="flex items-center justify-between border-b border-slate-50 pb-3">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-xs uppercase">
                                 ${diary.userName.slice(0, 2)}
                             </div>
                             <div>
-                                <h4 class="text-sm font-black text-forest-brown">${escapeHTML(diary.userName)}</h4>
-                                <p class="text-[10px] font-bold text-forest-brown/50">${diary.diaryDate} の日記</p>
+                                <h4 class="text-sm font-bold text-slate-900">${escapeHTML(diary.userName)}</h4>
+                                <p class="text-[10px] text-slate-400">${diary.diaryDate} の日記</p>
                             </div>
                         </div>
-                        <span class="text-xs bg-forest-light border-2 border-forest-brown text-forest-brown font-semibold py-1 px-2.5 rounded-full shadow-[1px_1px_0px_0px_#5C4033]">
+                        <span class="text-xs bg-slate-100 text-slate-600 font-semibold py-1 px-2.5 rounded-full">
                             ${diary.submissionType === 'image' ? '<i class="fa-regular fa-image"></i> 画像提出' : '<i class="fa-regular fa-keyboard"></i> キーボード'}
                         </span>
                     </div>
@@ -1258,15 +1247,15 @@ const firebaseConfig = {
         const adminModerationSection = document.getElementById('admin-moderation-section');
 
         adminTabUsers.addEventListener('click', () => {
-            adminTabUsers.className = "py-2 px-1 text-sm font-black border-b-4 border-forest-green text-forest-green transition";
-            adminTabModeration.className = "py-2 px-1 text-sm font-bold border-b-4 border-transparent text-forest-brown/50 hover:text-forest-brown transition";
+            adminTabUsers.className = "py-2.5 px-1 text-sm font-bold border-b-2 border-emerald-600 text-emerald-600 transition";
+            adminTabModeration.className = "py-2.5 px-1 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition";
             adminUsersSection.classList.remove('hidden');
             adminModerationSection.classList.add('hidden');
         });
 
         adminTabModeration.addEventListener('click', () => {
-            adminTabModeration.className = "py-2 px-1 text-sm font-black border-b-4 border-forest-green text-forest-green transition";
-            adminTabUsers.className = "py-2 px-1 text-sm font-bold border-b-4 border-transparent text-forest-brown/50 hover:text-forest-brown transition";
+            adminTabModeration.className = "py-2.5 px-1 text-sm font-bold border-b-2 border-emerald-600 text-emerald-600 transition";
+            adminTabUsers.className = "py-2.5 px-1 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition";
             adminModerationSection.classList.remove('hidden');
             adminUsersSection.classList.add('hidden');
             loadModerationDiaries();
@@ -1328,12 +1317,12 @@ const firebaseConfig = {
         // --- LOAD MODERATION LIST ---
         function loadModerationDiaries() {
             const listContainer = document.getElementById('admin-diaries-moderation-list');
-            listContainer.innerHTML = '<p class="text-forest-brown/60 text-sm italic text-center py-8">日記データを取得中...</p>';
+            listContainer.innerHTML = '<p class="text-slate-500 text-sm italic text-center py-8">日記データを取得中...</p>';
 
             const handleModeration = (diaries) => {
                 listContainer.innerHTML = "";
                 if (diaries.length === 0) {
-                    listContainer.innerHTML = '<p class="text-forest-brown/60 text-sm italic text-center py-8">投稿された日記はありません。</p>';
+                    listContainer.innerHTML = '<p class="text-slate-500 text-sm italic text-center py-8">投稿された日記はありません。</p>';
                     return;
                 }
 
@@ -1341,20 +1330,20 @@ const firebaseConfig = {
 
                 diaries.forEach(diary => {
                     const div = document.createElement('div');
-                    div.className = `border-3 rounded-2xl p-4 transition shadow-[2px_2px_0px_0px_#5C4033] ${diary.isVisible === false ? 'bg-rose-50 border-rose-300 text-rose-900' : 'bg-white border-forest-brown'}`;
+                    div.className = `border rounded-xl p-4 transition ${diary.isVisible === false ? 'bg-rose-50/50 border-rose-200' : 'bg-white border-slate-100'}`;
                     
                     div.innerHTML = `
                         <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
                             <div>
-                                <span class="bg-forest-soft text-forest-brown text-[10px] font-bold px-2.5 py-1 rounded-full border-2 border-forest-brown shadow-[1px_1px_0px_0px_#5C4033]">${diary.diaryDate}</span>
-                                <span class="text-sm font-black text-forest-brown ml-2">${escapeHTML(diary.userName)}</span>
-                                <p class="text-xs font-bold text-forest-brown/70 mt-1 whitespace-pre-wrap">${escapeHTML(diary.content)}</p>
+                                <span class="bg-slate-200 text-slate-800 text-[10px] font-bold px-2 py-0.5 rounded-full">${diary.diaryDate}</span>
+                                <span class="text-sm font-bold text-slate-900 ml-2">${escapeHTML(diary.userName)}</span>
+                                <p class="text-xs text-slate-400 mt-1 whitespace-pre-wrap">${escapeHTML(diary.content)}</p>
                             </div>
                             <div class="flex items-center space-x-2 shrink-0">
-                                <button onclick="toggleVisibility('${diary.id}', ${diary.isVisible !== false})" class="text-xs font-bold px-3 py-1.5 rounded-xl border-2 border-forest-brown shadow-[2px_2px_0px_0px_#5C4033] active:translate-y-0.5 active:shadow-none transition-all ${diary.isVisible === false ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                                <button onclick="toggleVisibility('${diary.id}', ${diary.isVisible !== false})" class="text-xs font-semibold px-3 py-1.5 rounded-lg transition ${diary.isVisible === false ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800' : 'bg-amber-100 hover:bg-amber-200 text-amber-800'}">
                                     ${diary.isVisible === false ? '<i class="fa-solid fa-eye"></i> 公開' : '<i class="fa-solid fa-eye-slash"></i> 非表示'}
                                 </button>
-                                <button onclick="triggerDeleteDiary('${diary.id}')" class="text-xs bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold px-3 py-1.5 rounded-xl border-2 border-forest-brown shadow-[2px_2px_0px_0px_#5C4033] active:translate-y-0.5 active:shadow-none transition-all">
+                                <button onclick="triggerDeleteDiary('${diary.id}')" class="text-xs bg-rose-100 hover:bg-rose-200 text-rose-800 font-semibold px-3 py-1.5 rounded-lg transition">
                                     <i class="fa-regular fa-trash-can"></i> 削除
                                 </button>
                             </div>
@@ -1448,7 +1437,6 @@ const firebaseConfig = {
                     console.error("Delete failed:", err);
                     let mockList = JSON.parse(localStorage.getItem(`mock_diaries_${classId}`) || '[]');
                     mockList = mockList.filter(d => d.id !== pendingDeleteId);
-                    localStorage.setItem(`mock_diaries_${classId}`, JSON.stringify(mockList));
                     onDeleteSuccess();
                 });
             }
@@ -1471,7 +1459,7 @@ const firebaseConfig = {
         window.openImageModal = function(src) {
             const modal = document.createElement('div');
             modal.className = "fixed inset-0 bg-black/90 z-[9999] flex items-center justify-center p-4 cursor-zoom-out";
-            modal.innerHTML = `<img src="${src}" class="max-w-full max-h-full rounded-2xl border-4 border-forest-brown shadow-2xl">`;
+            modal.innerHTML = `<img src="${src}" class="max-w-full max-h-full rounded-lg shadow-2xl">`;
             modal.onclick = () => modal.remove();
             document.body.appendChild(modal);
         }
