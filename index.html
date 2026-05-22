@@ -492,16 +492,15 @@
         let isMockMode = false;
         
         // --- FIREBASE CONFIG ---
-        const firebaseConfig = typeof __firebase_config !== 'undefined' 
-            ? JSON.parse(__firebase_config) 
-            : {
-                apiKey: "", 
-                authDomain: "mock-app.firebaseapp.com",
-                projectId: "mock-app",
-                storageBucket: "mock-app.appspot.com",
-                messagingSenderId: "1234567890",
-                appId: "1:1234567890:web:mock-app"
-            };
+const firebaseConfig = {
+  apiKey: "AIzaSyC-Hb0OlRsaiH-rIf_RtTprbPOVjiFe6CY",
+  authDomain: "dnevnikki-3ef8c.firebaseapp.com",
+  projectId: "dnevnikki-3ef8c",
+  storageBucket: "dnevnikki-3ef8c.firebasestorage.app",
+  messagingSenderId: "397787110589",
+  appId: "1:397787110589:web:cdeb7b71d92099b6362bd4",
+  measurementId: "G-J0W145BBB6"
+};
 
         let db;
         let auth;
